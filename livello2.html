@@ -3,42 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Lv2 - La Foresta</title>
+    <title>Viaggio verso il Castello - Lv2 CASTLE</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
-        body { margin: 0; overflow: hidden; background: #000; font-family: 'Press Start 2P', cursive; touch-action: none; user-select: none; }
+        
+        body { 
+            margin: 0; overflow: hidden; background: #000;
+            font-family: 'Press Start 2P', cursive; touch-action: none; user-select: none;
+            color: white;
+        }
         canvas { display: block; }
 
-        /* UI GENERALE */
-        #ui { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 100; }
+        #ui { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
         
-        /* Box Menu Iniziale */
-        #start-screen { 
+        .screen { 
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            text-align: center; background: rgba(20, 10, 40, 0.95); padding: 30px;
+            text-align: center; background: rgba(10, 5, 20, 0.95); padding: 30px;
             border: 4px solid #b388ff; pointer-events: auto; width: 85%; max-width: 500px;
-            border-radius: 20px; color: #fff; display: block;
+            border-radius: 20px; box-shadow: 0 0 50px rgba(138, 43, 226, 0.6); color: #fff;
         }
 
-        /* SCHERMATA VITTORIA - BLINDATA */
-        #win-screen { 
-            display: none; /* NASCOSTO DI DEFAULT */
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
-            background: rgba(0,0,0,0.95); z-index: 99999; 
-            flex-direction: column; justify-content: center; align-items: center; 
-            pointer-events: auto;
-        }
-
-        .win-box {
-            width: 80%; max-width: 400px; border: 4px solid #ffd700; 
-            padding: 25px; border-radius: 20px; background: #1a1a1a; text-align: center;
-        }
-
-        button { padding: 15px 30px; font-family: 'Press Start 2P'; cursor: pointer; background: #7b68ee; color: white; border: 2px solid #fff; border-radius: 10px; }
-        #hud { position: absolute; top: 15px; left: 20px; color: white; font-size: 12px; text-shadow: 2px 2px #000; }
+        h1 { color: #e0b0ff; text-shadow: 0 0 10px #7b68ee; font-size: 1.2rem; margin-bottom: 20px; line-height: 1.5; }
         
-        #controls { position: absolute; bottom: 20px; left: 0; width: 100%; display: none; justify-content: space-between; padding: 0 20px; box-sizing: border-box; pointer-events: none; }
-        .btn { width: 70px; height: 70px; background: rgba(255,255,255,0.2); border-radius: 50%; pointer-events: auto; display: flex; justify-content: center; align-items: center; color: white; border: 2px solid #fff; }
+        .story-text {
+            font-size: 0.65rem; line-height: 1.8; color: #dcdcdc; margin-bottom: 30px;
+            text-align: left; background: #240046; padding: 15px; border-radius: 10px;
+            border: 1px solid #7b68ee; font-family: monospace;
+        }
+
+        button { 
+            padding: 15px 40px; font-family: 'Press Start 2P', cursive; background: #7b68ee; color: white; 
+            border: 2px solid #fff; cursor: pointer; font-size: 0.8rem;
+            border-radius: 10px; box-shadow: 0 0 15px #483d8b; transition: all 0.2s;
+        }
+        button:active { transform: scale(0.95); box-shadow: 0 0 5px #483d8b; }
+
+        #hud { 
+            position: absolute; top: 15px; left: 20px; font-size: 14px; 
+            text-shadow: 2px 2px 0 #000; display: flex; align-items: center; gap: 10px;
+        }
+        .key-icon { font-size: 20px; filter: grayscale(100%); transition: filter 0.5s; }
+        .key-icon.found { filter: drop-shadow(0 0 10px gold) grayscale(0%); }
+
+        #controls { 
+            position: absolute; bottom: 20px; left: 0; width: 100%; 
+            display: flex; justify-content: space-between; padding: 0 20px; box-sizing: border-box;
+            pointer-events: none;
+        }
+        .btn { 
+            width: 75px; height: 75px; background: rgba(255,255,255,0.1); 
+            border-radius: 50%; pointer-events: auto; display: flex; 
+            justify-content: center; align-items: center; color: white; font-size: 30px;
+            border: 2px solid rgba(255,255,255,0.2); backdrop-filter: blur(5px);
+        }
     </style>
 </head>
 <body>
@@ -46,94 +63,27 @@
 <canvas id="gameCanvas"></canvas>
 
 <div id="ui">
-    <div id="start-screen">
-        <h1 style="font-size:18px; color:#e0b0ff;">CAPITOLO 2</h1>
-        <p style="font-size:10px; line-height:1.6;">Trova la Chiave Lunare per sbloccare il castello.</p>
-        <button onclick="startGame()">INIZIA</button>
-    </div>
-
-    <div id="win-screen">
-        <div class="win-box">
-            <h1 style="color:#ffd700; font-size:16px;">CASTELLO SBLOCCATO!</h1>
-            <p style="color:#fff; font-size:10px; line-height:1.6; margin: 20px 0;">Il ponte levatoio si abbassa... Entra e salva l'amore.</p>
-            <button style="background:#ffd700; color:#000;" onclick="window.parent.postMessage('NEXT_LEVEL_3', '*')">SFIDA IL RE >></button>
+    <div id="start-screen" class="screen">
+        <h1>CAPITOLO 2:<br>LA FORESTA OSCURA</h1>
+        <div class="story-text">
+            "Il Cancello del Castello è sigillato.<br><br>
+            Devi trovare la <strong>Chiave Lunare</strong>.<br>
+            La leggenda dice che si trova nel punto più alto e lontano della foresta, oltre le nuvole nere.<br><br>
+            Usa l'ascensore, ma non andare verso il castello: <strong>vai a sinistra</strong> e scala le isole fluttuanti."
         </div>
+        <button onclick="startGame()">INIZIA LA SCALATA</button>
     </div>
 
-    <div id="hud">CHIAVE: <span id="key-status">❌</span></div>
-</div>
+    <div id="hud">
+        CHIAVE: <span id="key-icon" class="key-icon">🗝️</span> 
+        <span id="key-text" style="color:#aaa">MANCANTE</span>
+    </div>
 
-<div id="controls">
-    <div style="display:flex; gap:10px;"><div class="btn" id="lBtn">◀</div><div class="btn" id="rBtn">▶</div></div>
-    <div class="btn" id="jBtn">▲</div>
-</div>
+    <div id="win-screen" style="display:none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.95); z-index: 99999; flex-direction: column; justify-content: center; align-items: center;">
+        <div style="width: 85%; max-width: 400px; border: 4px solid #ffd700; padding: 20px; border-radius: 20px; background: #222; text-align: center;">
+            <h1 style="color: #ffd700; font-size: 1.2rem; margin-bottom: 20px;">CASTELLO SBLOCCATO!</h1>
+            <div style="color: #fff; font-size: 0.7rem; line-height: 1.6; margin-bottom: 25px; text-align: left; background: #333; padding: 15px; border:
 
-<script>
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-const ZOOM = 0.65;
-let gameRunning = false, hasKey = false, cameraX = 0;
-const keys = { l: false, r: false, j: false };
-const player = { x: 50, y: 0, w: 32, h: 48, vx: 0, vy: 0, speed: 6, jump: -17, onG: false };
-
-const platforms = [
-    {x: 0, y: 500, w: 600, h: 60},
-    {x: 3200, y: 400, w: 1200, h: 200}
-];
-const keyItem = {x: 480, y: 100, w: 30, h: 30, active: true};
-const door = {x: 3950, y: 280, w: 80, h: 120};
-
-function startGame() {
-    document.getElementById('start-screen').style.display = 'none';
-    document.getElementById('controls').style.display = 'flex';
-    gameRunning = true;
-    requestAnimationFrame(update);
-}
-
-function update() {
-    if(!gameRunning) return;
-    if(keys.l) player.vx = -player.speed; else if(keys.r) player.vx = player.speed; else player.vx *= 0.8;
-    player.vy += 0.8; player.x += player.vx; player.y += player.vy;
-    player.onG = false;
-    platforms.forEach(p => {
-        if(player.x < p.x+p.w && player.x+player.w > p.x && player.y+player.h > p.y && player.y+player.h < p.y+20) {
-            player.y = p.y-player.h; player.vy = 0; player.onG = true;
-        }
-    });
-    if(keys.j && player.onG) player.vy = player.jump;
-    cameraX += (player.x - (canvas.width/ZOOM)/3 - cameraX) * 0.1;
-
-    if(keyItem.active && player.x < keyItem.x+30 && player.x+32 > keyItem.x && player.y < keyItem.y+30 && player.y+48 > keyItem.y) {
-        keyItem.active = false; hasKey = true; document.getElementById('key-status').innerText = "🗝️";
-    }
-
-    if(hasKey && player.x < door.x+door.w && player.x+32 > door.x && player.y < door.y+door.h && player.y+48 > door.y) {
-        gameRunning = false;
-        document.getElementById('win-screen').style.display = 'flex';
-    }
-    draw(); requestAnimationFrame(update);
-}
-
-function draw() {
-    ctx.fillStyle = "#1a0033"; ctx.fillRect(0,0,canvas.width,canvas.height);
-    ctx.save(); ctx.scale(ZOOM, ZOOM); ctx.translate(-cameraX, 0);
-    ctx.fillStyle = "#2E8B57"; platforms.forEach(p => ctx.fillRect(p.x, p.y, p.w, p.h));
-    if(keyItem.active) { ctx.fillStyle = "gold"; ctx.fillText("🗝️", keyItem.x, keyItem.y); }
-    ctx.fillStyle = "#3e2723"; ctx.fillRect(door.x, door.y, door.w, door.h);
-    ctx.fillStyle = "#ff1493"; ctx.fillRect(player.x, player.y, player.w, player.h);
-    ctx.restore();
-}
-
-const setup = (id, k) => {
-    const el = document.getElementById(id);
-    el.ontouchstart = (e) => { e.preventDefault(); keys[k] = true; };
-    el.ontouchend = (e) => { e.preventDefault(); keys[k] = false; };
-};
-setup('lBtn', 'l'); setup('rBtn', 'r'); setup('jBtn', 'j');
-</script>
-</body>
-</html>
 
 
 
