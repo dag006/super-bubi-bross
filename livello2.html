@@ -85,15 +85,16 @@
 
     <div id="win-screen" class="screen" style="display:none">
         <h1 style="color:#ffd700">CASTLE UNLOCKED!</h1>
-        <div class="story-text" style="background: #222; border-color: gold;">
-            "Il ponte levatoio si abbassa.<br>
-            L'ingresso al Castello è aperto.<br><br>
-            Il Re Malvagio sente la tua presenza.<br>
-            Non c'è più tempo.<br>
-            Entra e salva l'amore."
-        </div>
-      <button onclick="window.parent.postMessage('NEXT_LEVEL_3', '*')">SFIDA IL RE >></button>
+    <div id="win-screen" class="screen" style="display:none">
+    <h1 style="color:#ffd700">CASTLE UNLOCKED!</h1>
+    <div class="story-text" style="background: #222; border: 2px solid gold; padding: 15px; color: white; font-size: 0.7rem; margin-bottom: 20px;">
+        "Il ponte levatoio si abbassa.<br>
+        L'ingresso al Castello è aperto.<br><br>
+        Il Re Malvagio sente la tua presenza.<br>
+        Entra e salva l'amore."
     </div>
+    <button onclick="window.parent.postMessage('NEXT_LEVEL_3', '*')">SFIDA IL RE >></button>
+</div>
 </div>
 
 <div id="controls" style="display:none">
@@ -347,3 +348,4 @@ function draw() {
 </body>
 
 </html>
+
