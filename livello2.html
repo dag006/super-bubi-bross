@@ -1,0 +1,348 @@
+
+
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Viaggio verso il Castello - Lv2 CASTLE</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+        
+        body { 
+            margin: 0; overflow: hidden; background: #000;
+            font-family: 'Press Start 2P', cursive; touch-action: none; user-select: none;
+            color: white;
+        }
+        canvas { display: block; }
+
+        /* UI */
+        #ui { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        
+        .screen { 
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            text-align: center; background: rgba(10, 5, 20, 0.95); padding: 30px;
+            border: 4px solid #b388ff; pointer-events: auto; width: 85%; max-width: 500px;
+            border-radius: 20px; box-shadow: 0 0 50px rgba(138, 43, 226, 0.6); color: #fff;
+        }
+
+        h1 { color: #e0b0ff; text-shadow: 0 0 10px #7b68ee; font-size: 1.2rem; margin-bottom: 20px; line-height: 1.5; }
+        
+        .story-text {
+            font-size: 0.65rem; line-height: 1.8; color: #dcdcdc; margin-bottom: 30px;
+            text-align: left; background: #240046; padding: 15px; border-radius: 10px;
+            border: 1px solid #7b68ee; font-family: monospace;
+        }
+
+        button { 
+            padding: 15px 40px; font-family: 'Press Start 2P', cursive; background: #7b68ee; color: white; 
+            border: 2px solid #fff; cursor: pointer; font-size: 0.8rem;
+            border-radius: 10px; box-shadow: 0 0 15px #483d8b; transition: all 0.2s;
+        }
+        button:active { transform: scale(0.95); box-shadow: 0 0 5px #483d8b; }
+
+        #hud { 
+            position: absolute; top: 15px; left: 20px; font-size: 14px; 
+            text-shadow: 2px 2px 0 #000; display: flex; align-items: center; gap: 10px;
+        }
+        .key-icon { font-size: 20px; filter: grayscale(100%); transition: filter 0.5s; }
+        .key-icon.found { filter: drop-shadow(0 0 10px gold) grayscale(0%); }
+
+        #controls { 
+            position: absolute; bottom: 20px; left: 0; width: 100%; 
+            display: flex; justify-content: space-between; padding: 0 20px; box-sizing: border-box;
+            pointer-events: none;
+        }
+        .btn { 
+            width: 75px; height: 75px; background: rgba(255,255,255,0.1); 
+            border-radius: 50%; pointer-events: auto; display: flex; 
+            justify-content: center; align-items: center; color: white; font-size: 30px;
+            border: 2px solid rgba(255,255,255,0.2); backdrop-filter: blur(5px);
+        }
+        .btn:active { background: rgba(123, 104, 238, 0.5); transform: scale(0.95); }
+    </style>
+</head>
+<body>
+
+<canvas id="gameCanvas"></canvas>
+
+<div id="ui">
+    <div id="start-screen" class="screen">
+        <h1>CAPITOLO 2:<br>LA FORESTA OSCURA</h1>
+        <div class="story-text">
+            "Il Cancello del Castello è sigillato.<br><br>
+            Devi trovare la <strong>Chiave Lunare</strong>.<br>
+            La leggenda dice che si trova nel punto più alto e lontano della foresta, oltre le nuvole nere.<br><br>
+            Usa l'ascensore, ma non andare verso il castello: <strong>vai a sinistra</strong> e scala le isole fluttuanti."
+        </div>
+        <button onclick="startGame()">INIZIA LA SCALATA</button>
+    </div>
+
+    <div id="hud">
+        CHIAVE: <span id="key-icon" class="key-icon">🗝️</span> 
+        <span id="key-text" style="color:#aaa">MANCANTE</span>
+    </div>
+
+    <div id="win-screen" class="screen" style="display:none">
+        <h1 style="color:#ffd700">CASTLE UNLOCKED!</h1>
+        <div class="story-text" style="background: #222; border-color: gold;">
+            "Il ponte levatoio si abbassa.<br>
+            L'ingresso al Castello è aperto.<br><br>
+            Il Re Malvagio sente la tua presenza.<br>
+            Non c'è più tempo.<br>
+            Entra e salva l'amore."
+        </div>
+        <button onclick="window.parent.postMessage({type: 'NEXT_LEVEL', number: 3}, '*')">SFIDA IL RE >></button>
+    </div>
+</div>
+
+<div id="controls" style="display:none">
+    <div style="display:flex; gap:15px; pointer-events:none">
+        <div class="btn" id="leftBtn">◀</div>
+        <div class="btn" id="rightBtn">▶</div>
+    </div>
+    <div class="btn" id="jumpBtn">▲</div>
+</div>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+const ZOOM = 0.65; 
+
+let gameRunning = false;
+let cameraX = 0;
+const gravity = 0.8;
+const keys = { left: false, right: false, jump: false };
+
+const player = { 
+    x: 50, y: 0, w: 32, h: 48, 
+    vx: 0, vy: 0, speed: 6, jumpPower: -17, 
+    onGround: false, facingRight: true, animFrame: 0,
+    attachTo: null
+};
+
+let hasKey = false;
+
+const trees = [];
+for(let i=0; i<30; i++) {
+    trees.push({x: i*300 + Math.random()*200, h: 200 + Math.random()*500});
+}
+
+const platforms = [
+    {x: 0, y: canvas.height/ZOOM - 60, w: 600, h: 60, type: 0},
+    {x: 700, y: canvas.height/ZOOM - 150, w: 120, h: 30, type: 1, vx: 2, min: 700, max: 900},
+    {x: 1100, y: canvas.height/ZOOM - 250, w: 120, h: 30, type: 1, vx: -2, min: 1000, max: 1200},
+    {x: 1400, y: canvas.height/ZOOM - 200, w: 400, h: 200, type: 0},
+    {x: 1900, y: canvas.height/ZOOM - 200, w: 100, h: 20, type: 2, vy: -3, min: canvas.height/ZOOM - 800, max: canvas.height/ZOOM - 200},
+    {x: 1600, y: canvas.height/ZOOM - 600, w: 100, h: 20, type: 0}, 
+    {x: 1300, y: canvas.height/ZOOM - 650, w: 100, h: 20, type: 1, vx: 2, min: 1250, max: 1350}, 
+    {x: 1000, y: canvas.height/ZOOM - 700, w: 100, h: 20, type: 1, vx: -2, min: 950, max: 1050}, 
+    {x: 700, y: canvas.height/ZOOM - 750, w: 100, h: 20, type: 0}, 
+    {x: 400, y: canvas.height/ZOOM - 800, w: 200, h: 30, type: 0}, 
+    {x: 2100, y: canvas.height/ZOOM - 500, w: 200, h: 30, type: 0}, 
+    {x: 2400, y: canvas.height/ZOOM - 400, w: 150, h: 30, type: 1, vx: 2, min: 2400, max: 2600},
+    {x: 2800, y: canvas.height/ZOOM - 300, w: 150, h: 30, type: 1, vx: -2, min: 2800, max: 3000},
+    {x: 3200, y: canvas.height/ZOOM - 200, w: 1200, h: 200, type: 0}
+];
+
+const keyItem = {x: 480, y: canvas.height/ZOOM - 850, w: 30, h: 30, active: true};
+
+const enemies = [
+    {x: 1500, y: canvas.height/ZOOM - 230, w: 30, h: 30, vx: 2, minX: 1400, maxX: 1750},
+    {x: 500, y: canvas.height/ZOOM - 830, w: 30, h: 30, vx: 4, minX: 400, maxX: 580},
+    {x: 3400, y: canvas.height/ZOOM - 230, w: 30, h: 30, vx: 3, minX: 3200, maxX: 3700} 
+];
+
+const castleDoor = {x: 3950, y: canvas.height/ZOOM - 320, w: 80, h: 120};
+
+const fireflies = [];
+for(let i=0; i<50; i++) fireflies.push({x: Math.random()*4500, y: Math.random()*(canvas.height/ZOOM), vx: (Math.random()-0.5), vy: (Math.random()-0.5), size: Math.random()*4});
+
+function setupControls() {
+    const bind = (id, key) => {
+        const el = document.getElementById(id);
+        const start = (e) => { e.preventDefault(); keys[key] = true; };
+        const end = (e) => { e.preventDefault(); keys[key] = false; };
+        el.ontouchstart = start; el.ontouchend = end;
+        el.onmousedown = start; el.onmouseup = end;
+    };
+    bind('leftBtn', 'left'); bind('rightBtn', 'right'); bind('jumpBtn', 'jump');
+}
+
+function startGame() {
+    document.getElementById('start-screen').style.display = 'none';
+    document.getElementById('controls').style.display = 'flex';
+    gameRunning = true;
+    setupControls();
+    requestAnimationFrame(update);
+}
+
+function update() {
+    if(!gameRunning) return;
+
+    platforms.forEach(p => {
+        if(p.type === 1) { p.x += p.vx; if(p.x > p.max || p.x < p.min) p.vx *= -1; }
+        else if(p.type === 2) { p.y += p.vy; if(p.y > p.max || p.y < p.min) p.vy *= -1; }
+    });
+
+    if(player.onGround && player.attachTo) {
+        player.x += (player.attachTo.vx || 0);
+        player.y += (player.attachTo.vy || 0);
+    }
+    if(keys.left) { player.vx = -player.speed; player.facingRight = false; player.animFrame++; }
+    else if(keys.right) { player.vx = player.speed; player.facingRight = true; player.animFrame++; }
+    else { player.vx *= 0.8; player.animFrame = 0; }
+
+    player.vy += gravity; player.x += player.vx; player.y += player.vy;
+    player.onGround = false; player.attachTo = null;
+
+    platforms.forEach(p => {
+        if(player.x < p.x + p.w && player.x + player.w > p.x && player.y < p.y + p.h && player.y + player.h > p.y) {
+            if(player.vy > 0 && player.y + player.h - player.vy <= p.y + 20) {
+                player.y = p.y - player.h; player.vy = 0; player.onGround = true;
+                if(p.type !== 0) player.attachTo = p;
+            }
+        }
+    });
+
+    if(keys.jump && player.onGround) { player.vy = player.jumpPower; player.onGround = false; player.attachTo = null; }
+
+    let targetCamX = player.x - (canvas.width / ZOOM) / 3;
+    cameraX += (targetCamX - cameraX) * 0.1;
+
+    if(keyItem.active && checkOverlap(player, keyItem)) {
+        keyItem.active = false;
+        hasKey = true;
+        document.getElementById('key-icon').classList.add('found');
+        let txt = document.getElementById('key-text');
+        txt.innerText = "PRESA!"; txt.style.color = "#ffd700"; txt.style.textShadow = "0 0 10px gold";
+    }
+
+    enemies.forEach(e => {
+        if (Math.abs(player.x - e.x) < canvas.width/ZOOM) { 
+            e.x += e.vx; if(e.x > e.maxX || e.x < e.minX) e.vx *= -1;
+            if(checkOverlap(player, e)) {
+                if(player.x < 1000 && player.y < canvas.height/ZOOM - 600) player.x = 400; 
+                else if(player.x > 1000) player.x = 1400; 
+                else { player.x = 50; player.y = 0; }
+            }
+        }
+    });
+
+    if(checkOverlap(player, castleDoor)) {
+        if(hasKey) {
+            gameRunning = false;
+            document.getElementById('win-screen').style.display = 'block';
+        } else {
+            player.vx = -15; 
+            ctx.fillStyle = "white"; ctx.font = "20px Arial"; ctx.fillText("CHIUSO!", player.x - 50, player.y - 30);
+        }
+    }
+
+    if(player.y > canvas.height/ZOOM + 200) { player.x = 50; player.y = 0; player.vy=0; }
+
+    fireflies.forEach(f => { f.x += f.vx; f.y += f.vy; if(Math.random()>0.95) { f.vx=(Math.random()-0.5); f.vy=(Math.random()-0.5); } });
+
+    draw();
+    requestAnimationFrame(update);
+}
+
+function checkOverlap(r1, r2) {
+    return (r1.x < r2.x + (r2.w||30) && r1.x + r1.w > r2.x && r1.y < r2.y + (r2.h||30) && r1.y + r1.h > r2.y);
+}
+
+function drawPlayer(x, y, w, h, facingRight) {
+    ctx.fillStyle = '#3E2723'; 
+    if(facingRight) { let w = Math.sin(player.animFrame * 0.5) * 3; ctx.fillRect(x - 6 + w, y + 5, 12, 35); } 
+    else { let w = Math.sin(player.animFrame * 0.5) * 3; ctx.fillRect(x + w - 6 + w, y + 5, 12, 35); }
+    ctx.fillStyle = '#ff1493'; ctx.fillRect(x + 4, y + 15, w - 8, 20);
+    ctx.fillStyle = '#ffccaa'; ctx.fillRect(x + 2, y, w - 4, 15);
+    ctx.fillStyle = '#3E2723'; ctx.fillRect(x + 2, y, w - 4, 6); 
+    ctx.fillStyle = 'black';
+    if(facingRight) { ctx.fillRect(x + 18, y + 7, 3, 3); ctx.fillRect(x + 24, y + 7, 3, 3); } 
+    else { ctx.fillRect(x + 4, y + 7, 3, 3); ctx.fillRect(x + 10, y + 7, 3, 3); }
+    ctx.fillStyle = '#000088'; 
+    let lo = (!keys.left && !keys.right) ? 0 : Math.sin(player.animFrame * 0.5) * 5;
+    ctx.fillRect(x + 6 + lo, y + 35, 8, 13); ctx.fillRect(x + 18 - lo, y + 35, 8, 13);
+}
+
+function drawCastle(x, y) {
+    ctx.fillStyle = '#333'; 
+    ctx.fillRect(x, y - 200, 80, 200);
+    ctx.fillRect(x - 10, y - 220, 100, 20); 
+    ctx.fillRect(x + 220, y - 200, 80, 200);
+    ctx.fillRect(x + 210, y - 220, 100, 20);
+    ctx.fillRect(x + 50, y - 150, 200, 150);
+    
+    ctx.fillStyle = '#ffeb3b';
+    ctx.shadowBlur = 20; ctx.shadowColor = "yellow";
+    ctx.fillRect(x + 20, y - 150, 20, 40); 
+    ctx.fillRect(x + 260, y - 150, 20, 40); 
+    ctx.fillRect(x + 130, y - 100, 40, 40); 
+    ctx.shadowBlur = 0;
+
+    ctx.fillStyle = hasKey ? '#1a1a1a' : '#3e2723'; 
+    ctx.fillRect(x + 110, y, 80, 100); 
+    ctx.strokeStyle = '#555'; ctx.lineWidth = 5;
+    ctx.strokeRect(x + 110, y, 80, 100);
+}
+
+function draw() {
+    let grad = ctx.createLinearGradient(0, 0, 0, canvas.height/ZOOM);
+    grad.addColorStop(0, "#000000"); grad.addColorStop(1, "#2c003e");
+    ctx.fillStyle = grad; ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.save(); ctx.scale(ZOOM, ZOOM); ctx.translate(-cameraX, 0);
+
+    ctx.fillStyle = "#fffacd"; ctx.shadowBlur = 50; ctx.shadowColor = "white";
+    ctx.beginPath(); ctx.arc(cameraX + canvas.width/ZOOM - 150, 100, 60, 0, Math.PI*2); ctx.fill(); ctx.shadowBlur = 0;
+
+    ctx.fillStyle = '#110022';
+    trees.forEach((t) => {
+        ctx.fillRect(t.x, canvas.height/ZOOM - t.h, 40, t.h);
+        ctx.beginPath(); ctx.arc(t.x+20, canvas.height/ZOOM - t.h, 120, 0, Math.PI*2); ctx.fill();
+    });
+
+    ctx.fillStyle = '#ccff00';
+    fireflies.forEach(f => {
+        ctx.globalAlpha = 0.5 + Math.sin(Date.now()/300)*0.5;
+        ctx.beginPath(); ctx.arc(f.x, f.y, f.size, 0, Math.PI*2); ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+
+    drawCastle(3850, canvas.height/ZOOM - 200);
+
+    platforms.forEach(p => {
+        if(p.type === 2) {
+            ctx.fillStyle = '#666'; ctx.fillRect(p.x, p.y, p.w, p.h);
+            ctx.fillStyle = 'red'; ctx.fillRect(p.x + p.w/2 - 5, p.y, 10, p.h);
+        } else {
+            ctx.fillStyle = '#2E8B57'; ctx.fillRect(p.x, p.y, p.w, p.h);
+            ctx.fillStyle = '#006400'; ctx.fillRect(p.x, p.y+p.h-10, p.w, 10);
+        }
+        ctx.strokeStyle = '#4B0082'; ctx.lineWidth = 2; ctx.strokeRect(p.x, p.y, p.w, p.h);
+    });
+
+    if(keyItem.active) {
+        ctx.shadowBlur = 20; ctx.shadowColor = "gold";
+        ctx.fillStyle = 'gold'; ctx.font = '30px Arial';
+        ctx.fillText('🗝️', keyItem.x, keyItem.y + Math.sin(Date.now()/200)*10);
+        ctx.shadowBlur = 0;
+    }
+
+    enemies.forEach(e => {
+        ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(e.x+15, e.y+15, 15, 0, Math.PI*2); ctx.fill();
+        ctx.shadowBlur = 10; ctx.shadowColor = "red";
+        ctx.fillStyle = 'red'; ctx.fillRect(e.x+8, e.y+10, 4, 4); ctx.fillRect(e.x+18, e.y+10, 4, 4);
+        ctx.shadowBlur = 0;
+    });
+
+    drawPlayer(player.x, player.y, player.w, player.h, player.facingRight);
+    ctx.restore();
+}
+</script>
+</body>
+</html>

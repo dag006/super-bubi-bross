@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Super Bubi Bros - Menu</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+        body { 
+            margin: 0; 
+            background: #222; 
+            overflow: hidden; 
+            font-family: 'Press Start 2P', cursive; 
+            touch-action: none; 
+        }
+
+        /* --- STILE DEL MENU PRINCIPALE --- */
+        #main-menu {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #FFF8DC; /* Color Crema/Biscotto */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            text-align: center;
+        }
+
+        h1 {
+            color: #5D4037; /* Marrone Cioccolato */
+            font-size: 2rem;
+            text-shadow: 4px 4px #D7CCC8; /* Ombra chiara */
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+
+        .subtitle {
+            color: #8D6E63; /* Marrone più chiaro */
+            font-size: 0.8rem;
+            margin-bottom: 30px;
+        }
+
+        /* Cuore che pulsa */
+        .pixel-heart {
+            font-size: 4rem;
+            color: #e74c3c;
+            animation: beat 1s infinite;
+            margin-bottom: 30px;
+        }
+
+        @keyframes beat {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        #start-btn {
+            background: #5D4037; /* Bottone Marrone */
+            color: #FFF8DC; /* Testo Crema */
+            border: 4px solid #8D6E63;
+            padding: 15px 30px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 1.2rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            box-shadow: 0 6px #3E2723;
+            transition: transform 0.1s;
+            pointer-events: auto;
+        }
+
+        #start-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px #3E2723;
+        }
+    </style>
+</head>
+<body>
+
+<div id="main-menu">
+    <h1>SUPER<br>BUBI BROS</h1>
+    <div class="pixel-heart">❤️</div>
+    <div class="subtitle">Un'avventura d'amore per Bubi</div>
+    <button id="start-btn" onclick="startGame()">START</button>
+</div>
+
+<script>
+function startGame() {
+    console.log("Inizio del gioco...");
+    // Qui inseriremo la logica per nascondere il menu 
+    // e attivare il Level Manager che caricherà il Livello 1
+    document.getElementById('main-menu').style.display = 'none';
+}
+</script>
+
+</body>
+</html>

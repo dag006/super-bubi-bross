@@ -1,0 +1,324 @@
+
+
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Viaggio verso il Castello - Cap. 1</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+        
+        body { 
+            margin: 0; overflow: hidden; background: #87CEEB;
+            font-family: 'Press Start 2P', cursive; touch-action: none; user-select: none;
+        }
+        canvas { display: block; }
+
+        /* UI */
+        #ui { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        
+        .screen { 
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            text-align: center; background: rgba(255, 255, 255, 0.95); padding: 30px;
+            border: 4px solid #ff69b4; pointer-events: auto; width: 85%; max-width: 500px;
+            border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); color: #333;
+        }
+
+        h1 { color: #ff1493; text-shadow: 2px 2px 0 #fff; font-size: 1.1rem; margin-bottom: 20px; line-height: 1.5; }
+        
+        /* TESTO NORMALE */
+        p { font-size: 0.7rem; line-height: 1.8; color: #555; margin-bottom: 30px; }
+
+        /* STILE LETTERA (PER IL FINALE) */
+        .letter-box {
+            font-size: 0.65rem; line-height: 1.6; color: #444; margin-bottom: 20px;
+            text-align: left; background: #fff0f5; padding: 15px; border-radius: 10px;
+            border: 2px dashed #ffb6c1; font-family: monospace; font-weight: bold;
+            max-height: 200px; overflow-y: auto; 
+        }
+
+        button { 
+            padding: 15px 40px; font-family: 'Press Start 2P', cursive; background: #ff69b4; color: white; 
+            border: 2px solid #c71585; cursor: pointer; font-size: 0.8rem;
+            border-radius: 10px; box-shadow: 0 5px 0 #c71585; 
+        }
+        button:active { transform: translateY(5px); box-shadow: none; }
+
+        #hud { 
+            position: absolute; top: 15px; left: 20px; 
+            font-size: 18px; color: white; 
+            text-shadow: 2px 2px 0 #000, -1px -1px 0 #ff69b4; 
+        }
+
+        #controls { 
+            position: absolute; bottom: 20px; left: 0; width: 100%; 
+            display: flex; justify-content: space-between; padding: 0 20px; box-sizing: border-box;
+            pointer-events: none;
+        }
+        .btn { 
+            width: 70px; height: 70px; background: rgba(255,255,255,0.3); 
+            border-radius: 50%; pointer-events: auto; display: flex; 
+            justify-content: center; align-items: center; color: white; font-size: 30px;
+            border: 2px solid white; backdrop-filter: blur(4px); box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        .btn:active { background: rgba(255, 105, 180, 0.6); transform: scale(0.95); }
+    </style>
+</head>
+<body>
+
+<canvas id="gameCanvas"></canvas>
+
+<div id="ui">
+    <div id="start-screen" class="screen">
+        <h1>VIAGGIO VERSO<br>IL CASTELLO</h1>
+        <p>
+            Amore mio, ho lasciato una lettera per te oltre il cancello.<br><br>
+            Ma è sigillata magicamente.<br>
+            Per aprirla, devi raccogliere i<br>
+            <strong>5 Frammenti di Cuore ❤️</strong><br>
+            sparsi in questo mondo.
+        </p>
+        <button onclick="startGame()">INIZIA LA RICERCA</button>
+    </div>
+    
+    <div id="hud">Cuori: <span id="score">0</span>/5</div>
+
+    <div id="win-screen" class="screen" style="display:none">
+        <h1 style="color:#ff0066">LETTERA TROVATA!</h1>
+        <div class="letter-box">
+            "Amore mio,<br>
+            se leggi questo, hai trovato i frammenti della nostra fiducia.<br><br>
+            Ti scrivo dall'oscurità: il <strong>Re Malvagio</strong> mi ha imprigionato nel Castello e ha rubato il Cuore di Cristallo.<br><br>
+            La strada è pericolosa: dovrai attraversare la <strong>Foresta Oscura</strong> piena di insidie.<br><br>
+            Non avere paura. Corri da me.<br>
+            Salvami."
+        </div>
+        <button onclick="window.parent.postMessage({type: 'NEXT_LEVEL', number: 2}, '*')">CORRO NELLA FORESTA >></button>
+    </div>
+</div>
+
+<div id="controls" style="display:none">
+    <div style="display:flex; gap:15px; pointer-events:none">
+        <div class="btn" id="leftBtn">◀</div>
+        <div class="btn" id="rightBtn">▶</div>
+    </div>
+    <div class="btn" id="jumpBtn">▲</div>
+</div>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+const ZOOM = 0.7; 
+
+let gameRunning = false;
+let cameraX = 0;
+const gravity = 0.8;
+const keys = { left: false, right: false, jump: false };
+
+const player = { 
+    x: 50, y: 0, w: 32, h: 48, 
+    vx: 0, vy: 0, speed: 6, jumpPower: -17, 
+    onGround: false, facingRight: true, animFrame: 0
+};
+
+let heartsCollected = 0;
+const totalHearts = 5;
+
+const platforms = [
+    {x: 0, y: canvas.height/ZOOM - 60, w: 600, h: 60}, 
+    {x: 700, y: canvas.height/ZOOM - 150, w: 150, h: 40},
+    {x: 950, y: canvas.height/ZOOM - 250, w: 150, h: 40},
+    {x: 1200, y: canvas.height/ZOOM - 100, w: 800, h: 100}, 
+    {x: 1400, y: canvas.height/ZOOM - 250, w: 100, h: 20}, 
+    {x: 2100, y: canvas.height/ZOOM - 200, w: 120, h: 30},
+    {x: 2300, y: canvas.height/ZOOM - 350, w: 120, h: 30},
+    {x: 2600, y: canvas.height/ZOOM - 450, w: 120, h: 30}, 
+    {x: 2900, y: canvas.height/ZOOM - 300, w: 120, h: 30}, 
+    {x: 3200, y: canvas.height/ZOOM - 150, w: 800, h: 150} 
+];
+
+const hearts = [
+    {x: 760, y: canvas.height/ZOOM - 200, active: true}, 
+    {x: 1440, y: canvas.height/ZOOM - 300, active: true}, 
+    {x: 1600, y: canvas.height/ZOOM - 150, active: true}, 
+    {x: 2650, y: canvas.height/ZOOM - 500, active: true}, 
+    {x: 3500, y: canvas.height/ZOOM - 200, active: true}  
+];
+
+const enemies = [
+    {x: 1300, y: canvas.height/ZOOM - 130, w: 30, h: 30, vx: 2, minX: 1200, maxX: 1500}, 
+    {x: 1600, y: canvas.height/ZOOM - 130, w: 30, h: 30, vx: -2, minX: 1550, maxX: 1900}, 
+    {x: 3300, y: canvas.height/ZOOM - 180, w: 30, h: 30, vx: 3, minX: 3200, maxX: 3600}  
+];
+
+const door = {x: 3800, y: canvas.height/ZOOM - 230, w: 60, h: 80, open: false};
+
+const mountains = [];
+for(let i=0; i<15; i++) mountains.push({x: i*600, h: 100 + Math.random()*300});
+
+function setupControls() {
+    const bind = (id, key) => {
+        const el = document.getElementById(id);
+        const start = (e) => { e.preventDefault(); keys[key] = true; };
+        const end = (e) => { e.preventDefault(); keys[key] = false; };
+        el.ontouchstart = start; el.ontouchend = end;
+        el.onmousedown = start; el.onmouseup = end;
+    };
+    bind('leftBtn', 'left'); bind('rightBtn', 'right'); bind('jumpBtn', 'jump');
+}
+
+function startGame() {
+    document.getElementById('start-screen').style.display = 'none';
+    document.getElementById('controls').style.display = 'flex';
+    gameRunning = true;
+    setupControls();
+    requestAnimationFrame(update);
+}
+
+function update() {
+    if(!gameRunning) return;
+
+    if(keys.left) { player.vx = -player.speed; player.facingRight = false; player.animFrame++; }
+    else if(keys.right) { player.vx = player.speed; player.facingRight = true; player.animFrame++; }
+    else { player.vx *= 0.8; player.animFrame = 0; }
+
+    player.vy += gravity;
+    player.x += player.vx;
+    player.y += player.vy;
+    player.onGround = false;
+
+    platforms.forEach(p => {
+        if(player.x < p.x + p.w && player.x + player.w > p.x &&
+           player.y < p.y + p.h && player.y + player.h > p.y) {
+            if(player.vy > 0 && player.y + player.h - player.vy <= p.y + 20) {
+                player.y = p.y - player.h; player.vy = 0; player.onGround = true;
+            }
+        }
+    });
+
+    if(keys.jump && player.onGround) player.vy = player.jumpPower;
+
+    let targetCamX = player.x - (canvas.width / ZOOM) / 3;
+    cameraX += (targetCamX - cameraX) * 0.1;
+
+    hearts.forEach(h => {
+        if(h.active && checkOverlap(player, {x:h.x, y:h.y, w:30, h:30})) {
+            h.active = false;
+            heartsCollected++;
+            document.getElementById('score').innerText = heartsCollected;
+            if(heartsCollected === totalHearts) door.open = true;
+        }
+    });
+
+    enemies.forEach(e => {
+        if (Math.abs(player.x - e.x) < canvas.width/ZOOM) { 
+            e.x += e.vx;
+            if(e.x > e.maxX || e.x < e.minX) e.vx *= -1;
+            if(checkOverlap(player, e)) {
+                if(player.x > 2000) player.x = 2100; else player.x = 50; 
+                player.y = 0;
+            }
+        }
+    });
+
+    if(checkOverlap(player, door) && door.open) {
+        gameRunning = false;
+        document.getElementById('win-screen').style.display = 'block';
+    }
+
+    if(player.y > canvas.height/ZOOM) { player.x = 50; player.y = 0; player.vy=0; }
+
+    draw();
+    requestAnimationFrame(update);
+}
+
+function checkOverlap(r1, r2) {
+    return (r1.x < r2.x + (r2.w||30) && r1.x + r1.w > r2.x &&
+            r1.y < r2.y + (r2.h||30) && r1.y + r1.h > r2.y);
+}
+
+function drawPlayer(x, y, w, h, facingRight) {
+    ctx.fillStyle = '#3E2723'; 
+    if(facingRight) {
+        let hairWave = Math.sin(player.animFrame * 0.5) * 3;
+        ctx.fillRect(x - 6 + hairWave, y + 5, 12, 35); 
+    } else {
+        let hairWave = Math.sin(player.animFrame * 0.5) * 3;
+        ctx.fillRect(x + w - 6 + hairWave, y + 5, 12, 35);
+    }
+
+    ctx.fillStyle = '#ff1493'; 
+    ctx.fillRect(x + 4, y + 15, w - 8, 20);
+    
+    ctx.fillStyle = '#ffccaa'; 
+    ctx.fillRect(x + 2, y, w - 4, 15);
+    
+    ctx.fillStyle = '#3E2723';
+    ctx.fillRect(x + 2, y, w - 4, 6); 
+
+    ctx.fillStyle = 'black';
+    if(facingRight) {
+        ctx.fillRect(x + 18, y + 7, 3, 3);
+        ctx.fillRect(x + 24, y + 7, 3, 3);
+    } else {
+        ctx.fillRect(x + 4, y + 7, 3, 3);
+        ctx.fillRect(x + 10, y + 7, 3, 3);
+    }
+
+    ctx.fillStyle = '#000088'; 
+    let legOffset = Math.sin(player.animFrame * 0.5) * 5;
+    if(!keys.left && !keys.right) legOffset = 0;
+    
+    ctx.fillRect(x + 6 + legOffset, y + 35, 8, 13);
+    ctx.fillRect(x + 18 - legOffset, y + 35, 8, 13);
+}
+
+function draw() {
+    ctx.fillStyle = '#87CEEB';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.save();
+    ctx.scale(ZOOM, ZOOM); 
+    ctx.translate(-cameraX, 0);
+
+    ctx.fillStyle = '#90A4AE';
+    mountains.forEach(m => {
+        ctx.beginPath(); ctx.moveTo(m.x, canvas.height/ZOOM);
+        ctx.lineTo(m.x + 300, canvas.height/ZOOM - m.h);
+        ctx.lineTo(m.x + 600, canvas.height/ZOOM); ctx.fill();
+    });
+
+    platforms.forEach(p => {
+        ctx.fillStyle = '#4CAF50'; ctx.fillRect(p.x, p.y, p.w, p.h);
+        ctx.fillStyle = '#795548'; ctx.fillRect(p.x, p.y + 10, p.w, p.h - 10);
+        ctx.fillStyle = '#2E7D32'; ctx.fillRect(p.x, p.y + 10, p.w, 5);
+    });
+
+    ctx.fillStyle = door.open ? '#000' : '#3E2723'; 
+    ctx.fillRect(door.x, door.y, door.w, door.h);
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 4;
+    ctx.strokeRect(door.x, door.y, door.w, door.h);
+
+    hearts.forEach(h => {
+        if(h.active) {
+            ctx.fillStyle = 'red'; ctx.font = '30px Arial';
+            ctx.fillText('❤️', h.x, h.y + Math.sin(Date.now()/200)*5);
+        }
+    });
+
+    enemies.forEach(e => {
+        ctx.fillStyle = '#8B4513'; ctx.fillRect(e.x + 5, e.y + 15, 20, 15);
+        ctx.fillStyle = '#D32F2F'; ctx.fillRect(e.x, e.y, 30, 15);
+    });
+
+    drawPlayer(player.x, player.y, player.w, player.h, player.facingRight);
+
+    ctx.restore();
+}
+</script>
+</body>
+</html>

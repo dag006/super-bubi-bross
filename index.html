@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Super Bubi Bros - Official Game</title>
+    <style>
+        /* Rende il contenitore a tutto schermo e senza bordi */
+        body, html { 
+            margin: 0; 
+            padding: 0; 
+            width: 100%; 
+            height: 100%; 
+            overflow: hidden; 
+            background: #000; 
+        }
+        iframe { 
+            width: 100vw; 
+            height: 100vh; 
+            border: none; 
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+    <iframe id="game-frame" src="menu.html"></iframe>
+
+    <script>
+        const frame = document.getElementById('game-frame');
+
+        // Questo script resta in "ascolto" dei messaggi inviati dai vari livelli
+        window.addEventListener('message', (event) => {
+            // Se riceve un messaggio di tipo 'NEXT_LEVEL'
+            if (event.data.type === 'NEXT_LEVEL') {
+                const levelNumber = event.data.number;
+                
+                // Costruisce il nome del file da caricare (es: livello1.html)
+                const nextFile = "livello" + levelNumber + ".html";
+                
+                console.log("Caricamento: " + nextFile);
+                
+                // Cambia il contenuto dell'iframe caricando il nuovo file
+                frame.src = nextFile;
+            }
+        });
+    </script>
+</body>
+</html>
