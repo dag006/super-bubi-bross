@@ -83,18 +83,28 @@
         <span id="key-text" style="color:#aaa">MANCANTE</span>
     </div>
 
-    <div id="win-screen" class="screen" style="display:none">
-        <h1 style="color:#ffd700">CASTLE UNLOCKED!</h1>
-    <div id="win-screen" class="screen" style="display:none">
-    <h1 style="color:#ffd700">CASTLE UNLOCKED!</h1>
-    <div class="story-text" style="background: #222; border: 2px solid gold; padding: 15px; color: white; font-size: 0.7rem; margin-bottom: 20px;">
-        "Il ponte levatoio si abbassa.<br>
-        L'ingresso al Castello è aperto.<br><br>
-        Il Re Malvagio sente la tua presenza.<br>
-        Entra e salva l'amore."
+<div id="win-screen" class="screen" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 99999; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
+    
+    <div style="position: relative; top: 50%; transform: translateY(-50%); width: 80%; margin: 0 auto; border: 4px solid #ffd700; padding: 20px; border-radius: 20px; background: #222;">
+        
+        <h1 style="color: #ffd700; font-size: 1.5rem; margin-bottom: 20px; font-family: 'Press Start 2P', cursive; text-shadow: 2px 2px #000;">
+            CASTELLO SBLOCCATO!
+        </h1>
+        
+        <div style="color: #fff; font-size: 0.8rem; line-height: 1.8; margin-bottom: 30px; font-family: monospace; background: #333; padding: 15px; border: 1px dashed #ffd700;">
+            "Il ponte levatoio si abbassa.<br>
+            L'ingresso al Castello è aperto.<br><br>
+            Il Re Malvagio sente la tua presenza.<br>
+            Non c'è più tempo.<br>
+            Entra e salva l'amore."
+        </div>
+
+        <button style="background: #ffd700; color: #000; border: 4px solid #fff; padding: 20px 40px; font-size: 1rem; cursor: pointer; font-family: 'Press Start 2P', cursive; text-transform: uppercase; pointer-events: auto;" 
+        onclick="window.parent.postMessage('NEXT_LEVEL_3', '*')">
+            SFIDA IL RE >>
+        </button>
     </div>
-    <button onclick="window.parent.postMessage('NEXT_LEVEL_3', '*')">SFIDA IL RE >></button>
-</div>
+
 </div>
 
 <div id="controls" style="display:none">
@@ -348,4 +358,5 @@ function draw() {
 </body>
 
 </html>
+
 
