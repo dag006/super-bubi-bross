@@ -82,7 +82,241 @@
     <div id="win-screen" style="display:none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.95); z-index: 99999; flex-direction: column; justify-content: center; align-items: center;">
         <div style="width: 85%; max-width: 400px; border: 4px solid #ffd700; padding: 20px; border-radius: 20px; background: #222; text-align: center;">
             <h1 style="color: #ffd700; font-size: 1.2rem; margin-bottom: 20px;">CASTELLO SBLOCCATO!</h1>
-            <div style="color: #fff; font-size: 0.7rem; line-height: 1.6; margin-bottom: 25px; text-align: left; background: #333; padding: 15px; border:
+            <div style="color: #fff; font-size: 0.7rem; line-height: 1.6; margin-bottom: 25px; text-align: left; background: #333; padding: 15px; border: 1px dashed #ffd700;">
+                "Il ponte levatoio si abbassa.<br>L'ingresso al Castello è aperto.<br><br>Il Re Malvagio sente la tua presenza.<br>Non c'è più tempo.<br>Entra e salva l'amore."
+            </div>
+            <button style="background: #ffd700; color: #000; width: 100%;" onclick="window.parent.postMessage('NEXT_LEVEL_3', '*')">SFIDA IL RE >></button>
+        </div>
+    </div>
+</div>
+
+<div id="controls" style="display:none">
+    <div style="display:flex; gap:15px; pointer-events:none">
+        <div class="btn" id="leftBtn">◀</div>
+        <div class="btn" id="rightBtn">▶</div>
+    </div>
+    <div class="btn" id="jumpBtn">▲</div>
+</div>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+const ZOOM = 0.65; 
+
+let gameRunning = false;
+let cameraX = 0;
+const gravity = 0.8;
+const keys = { left: false, right: false, jump: false };
+
+const player = { 
+    x: 50, y: 0, w: 32, h: 48, 
+    vx: 0, vy: 0, speed: 6, jumpPower: -17, 
+    onGround: false, facingRight: true, animFrame: 0,
+    attachTo: null
+};
+
+let hasKey = false;
+
+const trees = [];
+for(let i=0; i<30; i++) {
+    trees.push({x: i*300 + Math.random()*200, h: 200 + Math.random()*500});
+}
+
+const platforms = [
+    {x: 0, y: canvas.height/ZOOM - 60, w: 600, h: 60, type: 0},
+    {x: 700, y: canvas.height/ZOOM - 150, w: 120, h: 30, type: 1, vx: 2, min: 700, max: 900},
+    {x: 1100, y: canvas.height/ZOOM - 250, w: 120, h: 30, type: 1, vx: -2, min: 1000, max: 1200},
+    {x: 1400, y: canvas.height/ZOOM - 200, w: 400, h: 200, type: 0},
+    {x: 1900, y: canvas.height/ZOOM - 200, w: 100, h: 20, type: 2, vy: -3, min: canvas.height/ZOOM - 800, max: canvas.height/ZOOM - 200},
+    {x: 1600, y: canvas.height/ZOOM - 600, w: 100, h: 20, type: 0}, 
+    {x: 1300, y: canvas.height/ZOOM - 650, w: 100, h: 20, type: 1, vx: 2, min: 1250, max: 1350}, 
+    {x: 1000, y: canvas.height/ZOOM - 700, w: 100, h: 20, type: 1, vx: -2, min: 950, max: 1050}, 
+    {x: 700, y: canvas.height/ZOOM - 750, w: 100, h: 20, type: 0}, 
+    {x: 400, y: canvas.height/ZOOM - 800, w: 200, h: 30, type: 0}, 
+    {x: 2100, y: canvas.height/ZOOM - 500, w: 200, h: 30, type: 0}, 
+    {x: 2400, y: canvas.height/ZOOM - 400, w: 150, h: 30, type: 1, vx: 2, min: 2400, max: 2600},
+    {x: 2800, y: canvas.height/ZOOM - 300, w: 150, h: 30, type: 1, vx: -2, min: 2800, max: 3000},
+    {x: 3200, y: canvas.height/ZOOM - 200, w: 1200, h: 200, type: 0}
+];
+
+const keyItem = {x: 480, y: canvas.height/ZOOM - 850, w: 30, h: 30, active: true};
+
+const enemies = [
+    {x: 1500, y: canvas.height/ZOOM - 230, w: 30, h: 30, vx: 2, minX: 1400, maxX: 1750},
+    {x: 500, y: canvas.height/ZOOM - 830, w: 30, h: 30, vx: 4, minX: 400, maxX: 580},
+    {x: 3400, y: canvas.height/ZOOM - 230, w: 30, h: 30, vx: 3, minX: 3200, maxX: 3700} 
+];
+
+const castleDoor = {x: 3950, y: canvas.height/ZOOM - 320, w: 80, h: 120};
+
+const fireflies = [];
+for(let i=0; i<50; i++) fireflies.push({x: Math.random()*4500, y: Math.random()*(canvas.height/ZOOM), vx: (Math.random()-0.5), vy: (Math.random()-0.5), size: Math.random()*4});
+
+function setupControls() {
+    const bind = (id, key) => {
+        const el = document.getElementById(id);
+        el.ontouchstart = (e) => { e.preventDefault(); keys[key] = true; };
+        el.ontouchend = (e) => { e.preventDefault(); keys[key] = false; };
+        el.onmousedown = (e) => { e.preventDefault(); keys[key] = true; };
+        el.onmouseup = (e) => { e.preventDefault(); keys[key] = false; };
+    };
+    bind('leftBtn', 'left'); bind('rightBtn', 'right'); bind('jumpBtn', 'jump');
+}
+
+function startGame() {
+    document.getElementById('start-screen').style.display = 'none';
+    document.getElementById('controls').style.display = 'flex';
+    gameRunning = true;
+    setupControls();
+    requestAnimationFrame(update);
+}
+
+function update() {
+    if(!gameRunning) return;
+
+    platforms.forEach(p => {
+        if(p.type === 1) { p.x += p.vx; if(p.x > p.max || p.x < p.min) p.vx *= -1; }
+        else if(p.type === 2) { p.y += p.vy; if(p.y > p.max || p.y < p.min) p.vy *= -1; }
+    });
+
+    if(player.onGround && player.attachTo) {
+        player.x += (player.attachTo.vx || 0);
+        player.y += (player.attachTo.vy || 0);
+    }
+    if(keys.left) { player.vx = -player.speed; player.facingRight = false; player.animFrame++; }
+    else if(keys.right) { player.vx = player.speed; player.facingRight = true; player.animFrame++; }
+    else { player.vx *= 0.8; player.animFrame = 0; }
+
+    player.vy += gravity; player.x += player.vx; player.y += player.vy;
+    player.onGround = false; player.attachTo = null;
+
+    platforms.forEach(p => {
+        if(player.x < p.x + p.w && player.x + player.w > p.x && player.y < p.y + p.h && player.y + player.h > p.y) {
+            if(player.vy > 0 && player.y + player.h - player.vy <= p.y + 20) {
+                player.y = p.y - player.h; player.vy = 0; player.onGround = true;
+                if(p.type !== 0) player.attachTo = p;
+            }
+        }
+    });
+
+    if(keys.jump && player.onGround) { player.vy = player.jumpPower; player.onGround = false; player.attachTo = null; }
+
+    let targetCamX = player.x - (canvas.width / ZOOM) / 3;
+    cameraX += (targetCamX - cameraX) * 0.1;
+
+    if(keyItem.active && checkOverlap(player, keyItem)) {
+        keyItem.active = false;
+        hasKey = true;
+        document.getElementById('key-icon').classList.add('found');
+        let txt = document.getElementById('key-text');
+        txt.innerText = "PRESA!"; txt.style.color = "#ffd700"; txt.style.textShadow = "0 0 10px gold";
+    }
+
+    enemies.forEach(e => {
+        if (Math.abs(player.x - e.x) < canvas.width/ZOOM) { 
+            e.x += e.vx; if(e.x > e.maxX || e.x < e.minX) e.vx *= -1;
+            if(checkOverlap(player, e)) {
+                if(player.x < 1000 && player.y < canvas.height/ZOOM - 600) player.x = 400; 
+                else if(player.x > 1000) player.x = 1400; 
+                else { player.x = 50; player.y = 0; }
+            }
+        }
+    });
+
+    if(checkOverlap(player, castleDoor)) {
+        if(hasKey) {
+            gameRunning = false;
+            document.getElementById('win-screen').style.display = 'flex';
+        } else {
+            player.vx = -15; 
+        }
+    }
+
+    if(player.y > canvas.height/ZOOM + 200) { player.x = 50; player.y = 0; player.vy=0; }
+
+    fireflies.forEach(f => { f.x += f.vx; f.y += f.vy; });
+
+    draw();
+    requestAnimationFrame(update);
+}
+
+function checkOverlap(r1, r2) {
+    return (r1.x < r2.x + (r2.w||30) && r1.x + r1.w > r2.x && r1.y < r2.y + (r2.h||30) && r1.y + r1.h > r2.y);
+}
+
+function drawPlayer(x, y, w, h, facingRight) {
+    ctx.fillStyle = '#3E2723'; 
+    if(facingRight) { ctx.fillRect(x - 6, y + 5, 12, 35); } 
+    else { ctx.fillRect(x + w - 6, y + 5, 12, 35); }
+    ctx.fillStyle = '#ff1493'; ctx.fillRect(x + 4, y + 15, w - 8, 20);
+    ctx.fillStyle = '#ffccaa'; ctx.fillRect(x + 2, y, w - 4, 15);
+    ctx.fillStyle = '#3E2723'; ctx.fillRect(x + 2, y, w - 4, 6); 
+    ctx.fillStyle = 'black';
+    if(facingRight) { ctx.fillRect(x + 18, y + 7, 3, 3); ctx.fillRect(x + 24, y + 7, 3, 3); } 
+    else { ctx.fillRect(x + 4, y + 7, 3, 3); ctx.fillRect(x + 10, y + 7, 3, 3); }
+    ctx.fillStyle = '#000088'; 
+    ctx.fillRect(x + 6, y + 35, 8, 13); ctx.fillRect(x + 18, y + 35, 8, 13);
+}
+
+function drawCastle(x, y) {
+    ctx.fillStyle = '#333'; 
+    ctx.fillRect(x, y - 200, 80, 200);
+    ctx.fillRect(x - 10, y - 220, 100, 20); 
+    ctx.fillRect(x + 220, y - 200, 80, 200);
+    ctx.fillRect(x + 210, y - 220, 100, 20);
+    ctx.fillRect(x + 50, y - 150, 200, 150);
+    ctx.fillStyle = '#ffeb3b';
+    ctx.fillRect(x + 20, y - 150, 20, 40); 
+    ctx.fillRect(x + 260, y - 150, 20, 40); 
+    ctx.fillStyle = hasKey ? '#1a1a1a' : '#3e2723'; 
+    ctx.fillRect(x + 110, y, 80, 100); 
+}
+
+function draw() {
+    let grad = ctx.createLinearGradient(0, 0, 0, canvas.height/ZOOM);
+    grad.addColorStop(0, "#000000"); grad.addColorStop(1, "#2c003e");
+    ctx.fillStyle = grad; ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.save(); ctx.scale(ZOOM, ZOOM); ctx.translate(-cameraX, 0);
+
+    ctx.fillStyle = '#110022';
+    trees.forEach((t) => {
+        ctx.fillRect(t.x, canvas.height/ZOOM - t.h, 40, t.h);
+        ctx.beginPath(); ctx.arc(t.x+20, canvas.height/ZOOM - t.h, 120, 0, Math.PI*2); ctx.fill();
+    });
+
+    ctx.fillStyle = '#ccff00';
+    fireflies.forEach(f => {
+        ctx.beginPath(); ctx.arc(f.x, f.y, f.size, 0, Math.PI*2); ctx.fill();
+    });
+
+    drawCastle(3850, canvas.height/ZOOM - 200);
+
+    platforms.forEach(p => {
+        ctx.fillStyle = p.type === 2 ? '#666' : '#2E8B57'; 
+        ctx.fillRect(p.x, p.y, p.w, p.h);
+    });
+
+    if(keyItem.active) {
+        ctx.fillStyle = 'gold'; ctx.font = '30px Arial';
+        ctx.fillText('🗝️', keyItem.x, keyItem.y);
+    }
+
+    enemies.forEach(e => {
+        ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(e.x+15, e.y+15, 15, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = 'red'; ctx.fillRect(e.x+8, e.y+10, 4, 4); ctx.fillRect(e.x+18, e.y+10, 4, 4);
+    });
+
+    drawPlayer(player.x, player.y, player.w, player.h, player.facingRight);
+    ctx.restore();
+}
+</script>
+</body>
+</html>
+
 
 
 
