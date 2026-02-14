@@ -84,7 +84,7 @@
     
     <div id="hud">Cuori: <span id="score">0</span>/5</div>
 
-    <div id="win-screen" class="screen" style="display:none">
+ <div id="win-screen" class="screen" style="display:none">
         <h1 style="color:#ff0066">LETTERA TROVATA!</h1>
         <div class="letter-box">
             "Amore mio,<br>
@@ -94,7 +94,7 @@
             Non avere paura. Corri da me.<br>
             Salvami."
         </div>
-        <button onclick="window.parent.postMessage({type: 'NEXT_LEVEL', number: 2}, '*')">CORRO NELLA FORESTA >></button>
+        <button onclick="window.parent.postMessage('NEXT_LEVEL_2', '*')">CORRO NELLA FORESTA >></button>
     </div>
 </div>
 
@@ -321,4 +321,5 @@ function draw() {
 }
 </script>
 </body>
+
 </html>
