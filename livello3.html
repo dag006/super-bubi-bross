@@ -1,119 +1,137 @@
-
 <!DOCTYPE html>
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<title>Lv3: Boss Battle</title>
+<title>Lv3: Final Version</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
-    body { margin: 0; overflow: hidden; background: #050005; font-family: 'Press Start 2P', cursive; user-select: none; }
+    
+    body { 
+        margin: 0; overflow: hidden; background: #050005; 
+        font-family: 'Press Start 2P', cursive; user-select: none; -webkit-user-select: none;
+    }
     canvas { display: block; width: 100%; height: 100%; }
+
+    /* UI LAYER */
     #ui { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
-    .screen-box { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 85%; max-width: 550px; background: linear-gradient(135deg, #1a0b2e 0%, #000000 100%); border: 3px solid #b388ff; padding: 35px; text-align: center; color: #fff; box-shadow: 0 0 40px rgba(138, 43, 226, 0.6); pointer-events: auto; border-radius: 15px; z-index: 2000; }
-    h1 { color: #d1c4e9; text-shadow: 0 0 10px #b388ff; font-size: 1.5rem; margin-bottom: 25px; text-transform: uppercase; line-height: 1.5; }
-    .story-text { font-size: 0.8rem; line-height: 2; color: #e0e0e0; margin-bottom: 35px; text-align: center; text-shadow: 1px 1px 2px #000; }
-    button { padding: 18px 45px; font-family: 'Press Start 2P', cursive; font-size: 12px; background: transparent; color: #00e5ff; border: 2px solid #00e5ff; border-radius: 30px; cursor: pointer; text-transform: uppercase; box-shadow: 0 0 15px rgba(0, 229, 255, 0.2); transition: all 0.2s; pointer-events: auto; }
+
+    /* --- STILE MENU "DREAM/NEON" --- */
+    .screen-box {
+        position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        width: 85%; max-width: 550px;
+        background: linear-gradient(135deg, #1a0b2e 0%, #000000 100%);
+        border: 3px solid #b388ff;
+        padding: 35px; text-align: center; color: #fff;
+        box-shadow: 0 0 40px rgba(138, 43, 226, 0.6);
+        pointer-events: auto; border-radius: 15px; z-index: 2000;
+    }
+
+    h1 { 
+        color: #d1c4e9; text-shadow: 0 0 10px #b388ff;
+        font-size: 1.5rem; margin-bottom: 25px; 
+        text-transform: uppercase; line-height: 1.5;
+    }
+    
+    .story-text {
+        font-size: 0.8rem; line-height: 2; color: #e0e0e0;
+        margin-bottom: 35px; text-align: center; font-weight: normal;
+        text-shadow: 1px 1px 2px #000;
+    }
+
+    button {
+        padding: 18px 45px; font-family: 'Press Start 2P', cursive; font-size: 12px;
+        background: transparent; color: #00e5ff; 
+        border: 2px solid #00e5ff; border-radius: 30px;
+        cursor: pointer; text-transform: uppercase; 
+        box-shadow: 0 0 15px rgba(0, 229, 255, 0.2);
+        transition: all 0.2s; pointer-events: auto;
+    }
+    button:hover { background: rgba(0, 229, 255, 0.1); transform: scale(1.05); }
+    button:active { transform: scale(0.95); }
+
+    /* HUD CUORI */
     #hud-hearts { position: absolute; top: 20px; left: 20px; display: flex; gap: 5px; filter: drop-shadow(2px 2px 0 #000); z-index: 100; }
-    .mc-heart { width: 24px; height: 24px; image-rendering: pixelated; background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 9 9"><path fill="%23000" d="M2 2h2v1h-2zM5 2h2v1h-2zM1 3h1v1h-1zM7 3h1v1h-1zM0 4h1v1h-1zM8 4h1v1h-1zM1 5h1v1h-1zM7 5h1v1h-1zM2 6h1v1h-1zM6 6h1v1h-1zM3 7h1v1h-1zM5 7h1v1h-1zM4 8h1v1h-1z"/><path fill="%23c00" d="M2 3h2v1h-2zM5 3h2v1h-2zM1 4h1v1h-1zM2 4h1v1h-1zM3 4h1v1h-1zM4 4h1v1h-1zM5 4h1v1h-1zM6 4h1v1h-1zM7 4h1v1h-1zM2 5h1v1h-1zM3 5h1v1h-1zM4 5h1v1h-1zM5 5h1v1h-1zM6 5h1v1h-1zM3 6h1v1h-1zM4 6h1v1h-1zM5 6h1v1h-1zM4 7h1v1h-1z"/><path fill="%23fff" d="M2 3h1v1h-1z"/></svg>') no-repeat center/contain; }
+    .mc-heart {
+        width: 24px; height: 24px; image-rendering: pixelated;
+        background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 9 9"><path fill="%23000" d="M2 2h2v1h-2zM5 2h2v1h-2zM1 3h1v1h-1zM7 3h1v1h-1zM0 4h1v1h-1zM8 4h1v1h-1zM1 5h1v1h-1zM7 5h1v1h-1zM2 6h1v1h-1zM6 6h1v1h-1zM3 7h1v1h-1zM5 7h1v1h-1zM4 8h1v1h-1z"/><path fill="%23c00" d="M2 3h2v1h-2zM5 3h2v1h-2zM1 4h1v1h-1zM2 4h1v1h-1zM3 4h1v1h-1zM4 4h1v1h-1zM5 4h1v1h-1zM6 4h1v1h-1zM7 4h1v1h-1zM2 5h1v1h-1zM3 5h1v1h-1zM4 5h1v1h-1zM5 5h1v1h-1zM6 5h1v1h-1zM3 6h1v1h-1zM4 6h1v1h-1zM5 6h1v1h-1zM4 7h1v1h-1z"/><path fill="%23fff" d="M2 3h1v1h-1z"/></svg>') no-repeat center/contain;
+    }
+
+    /* BOSS HUD */
     #boss-hud { display: none; position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); width: 60%; z-index: 90; }
     .boss-name { text-align: center; color: #ff3333; font-size: 10px; margin-bottom: 8px; text-shadow: 2px 2px 0 #000; letter-spacing: 2px; }
     .hp-bar-bg { width: 100%; height: 15px; background: #220; border: 2px solid #fff; border-radius: 4px; }
     .hp-fill { width: 100%; height: 100%; background: linear-gradient(90deg, #ff0000, #ff5555); transition: width 0.2s; box-shadow: 0 0 10px red; }
-    #dialogue-box { display: none; position: absolute; bottom: 120px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 600px; background: rgba(20, 10, 30, 0.98); border: 2px solid #b388ff; padding: 20px; color: white; font-size: 10px; line-height: 1.8; text-align: center; border-radius: 10px; z-index: 9999; box-shadow: 0 0 30px rgba(0,0,0,0.9); cursor: pointer; pointer-events: auto; }
+
+    /* DIALOGHI */
+    #dialogue-box {
+        display: none; position: absolute; bottom: 120px; left: 50%; transform: translateX(-50%);
+        width: 90%; max-width: 600px; 
+        background: rgba(20, 10, 30, 0.98); 
+        border: 2px solid #b388ff; 
+        padding: 20px; color: white; font-size: 10px; line-height: 1.8; text-align: center;
+        border-radius: 10px; 
+        z-index: 9999; 
+        box-shadow: 0 0 30px rgba(0,0,0,0.9);
+        cursor: pointer; pointer-events: auto;
+    }
     .speaker { color: #00e5ff; font-size: 12px; margin-bottom: 8px; text-transform: uppercase; text-shadow: 0 0 5px cyan; }
-    #fade-overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 5000; align-items: center; justify-content: center; flex-direction: column; opacity: 0; transition: opacity 2s; }
+
+    /* FADE */
+    #fade-overlay {
+        display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background: black; z-index: 5000; align-items: center; justify-content: center; flex-direction: column;
+        opacity: 0; transition: opacity 2s;
+    }
     .fade-text { color: white; font-family: 'Press Start 2P', cursive; font-size: 1.5rem; opacity: 0; transition: opacity 2s 1s; text-shadow: 0 0 20px white; }
-    #controls { position: absolute; bottom: 20px; left: 0; width: 100%; display: none; justify-content: space-between; padding: 0 20px; box-sizing: border-box; pointer-events: none; z-index: 80; }
-    .btn { width: 75px; height: 75px; background: rgba(255,255,255,0.1); border-radius: 50%; pointer-events: auto; display: flex; justify-content: center; align-items: center; color: white; font-size: 30px; border: 2px solid rgba(255,255,255,0.3); backdrop-filter: blur(4px); }
+
+    /* CONTROLLI TOUCH */
+    #controls { 
+        position: absolute; bottom: 20px; left: 0; width: 100%; 
+        display: none; justify-content: space-between; padding: 0 20px; box-sizing: border-box;
+        pointer-events: none; z-index: 80;
+    }
+    .btn { 
+        width: 75px; height: 75px; background: rgba(255,255,255,0.1); 
+        border-radius: 50%; pointer-events: auto; display: flex; 
+        justify-content: center; align-items: center; color: white; font-size: 30px;
+        border: 2px solid rgba(255,255,255,0.3); backdrop-filter: blur(4px);
+    }
 </style>
 </head>
 <body>
+
 <canvas id="gameCanvas"></canvas>
+
 <div id="ui">
     <div id="start-screen" class="screen-box">
         <h1>ULTIMO LIVELLO</h1>
-        <div class="story-text">Benvenuta all’ultimo livello.<br>Sconfiggi il boss per salvare Rocco.</div>
-        <button onclick="startGame()">INIZIA</button>
+        <div class="story-text">
+            Benvenuta all’ultimo livello.<br><br>
+            Questo è il percorso finale.<br><br>
+            Preparati a superare ostacoli e nemici…<br>
+            e a sconfiggere il boss.<br><br>
+            Solo così potrai conquistare il Cuore di Cristallo e la Chiave delle Segrete.
+        </div>
+        <button onclick="startGame()">INIZIA LA SFIDA</button>
     </div>
+
     <div id="hud-hearts" style="display:none;"></div>
+
     <div id="boss-hud">
         <div class="boss-name">RE MALVAGIO</div>
         <div class="hp-bar-bg"><div id="hp-fill" class="hp-fill"></div></div>
     </div>
-    <div id="dialogue-box"><div id="d-spk" class="speaker"></div><div id="d-txt"></div></div>
-    <div id="letter-screen" class="screen-box" style="display:none;">
-        <h1>VITTORIA!</h1>
-        <div class="story-text">Hai le chiavi delle segrete!</div>
-        <button onclick="window.parent.postMessage({type: 'NEXT_LEVEL', number: 4}, '*')">VERSO LE SEGRETE >></button>
+
+    <div id="dialogue-box">
+        <div id="d-spk" class="speaker"></div>
+        <div id="d-txt"></div>
+        <div style="font-size:8px; color:#aaa; margin-top:10px;">(Tocca ovunque per continuare)</div>
     </div>
-    <div id="fail-screen" class="screen-box" style="display:none;"><h1>CADUTA</h1><button onclick="resetGame()">RIPROVA</button></div>
-    <div id="fade-overlay"><div class="fade-text" id="ft1">LIVELLO 4</div><div class="fade-text" id="ft2">LE SEGRETE</div></div>
-</div>
-<div id="controls"><div style="display:flex; gap:15px; pointer-events:none"><div class="btn" id="leftBtn">◀</div><div class="btn" id="rightBtn">▶</div></div><div class="btn" id="jumpBtn">▲</div></div>
 
-<script>
-const canvas = document.getElementById('gameCanvas'); const ctx = canvas.getContext('2d');
-function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-window.addEventListener('resize', resize); resize();
-const ZOOM = 0.7; let gameRunning = false; let inDialogue = false; let cameraX = 0; let frame = 0;
-const keys = { left: false, right: false, jump: false };
-const player = { x: 100, y: 0, w: 32, h: 48, vx: 0, vy: 0, speed: 6, jumpPower: -16, onGround: false, facingRight: true, animFrame: 0, hp: 3, invulnerable: 0 };
-const boss = { x: 3400, y: 0, w: 90, h: 110, hp: 5, maxHp: 5, active: false, dir: 1, floatY: 0, invulnTimer: 0, startY: 0 };
-let projectiles = []; let particles = []; let items = []; let gate = null;
-const script = [{s:"RE MALVAGIO", t:"Sei arrivata... troppo tardi!"}, {s:"TU", t:"Non oggi. Non con me davanti."}];
-let diagIdx = 0;
-const platforms = [
-    {x: 0, y: 0, w: 600, h: 100}, {x: 700, y: -50, w: 100, h: 40}, {x: 850, y: -150, w: 100, h: 40}, {x: 1050, y: -50, w: 100, h: 40},
-    {x: 1250, y: 0, w: 800, h: 100}, {x: 2150, y: -100, w: 120, h: 40}, {x: 2350, y: -200, w: 120, h: 40}, {x: 2600, y: -50, w: 1200, h: 100},
-    {x: 2800, y: -220, w: 100, h: 30, bossOnly: true}, {x: 3400, y: -220, w: 100, h: 30, bossOnly: true}, {x: 3100, y: -320, w: 120, h: 30, bossOnly: true}
-];
-const enemies = [{x: 1400, y: -50, w: 40, h: 40, vx: 3, min: 1300, max: 1600}, {x: 1800, y: -50, w: 40, h: 40, vx: -4, min: 1700, max: 2000}];
-const torches = [{x: 200, y: -80}, {x: 1400, y: -80}, {x: 1800, y: -80}, {x: 2700, y: -150}, {x: 3500, y: -150}];
-
-function startGame() { document.getElementById('start-screen').style.display = 'none'; document.getElementById('controls').style.display = 'flex'; document.getElementById('hud-hearts').style.display = 'flex'; resetGame(); }
-function resetGame() {
-    gameRunning = true; player.hp = 3; player.x = 100; player.y = -300; boss.active = false; boss.hp = 5; projectiles = []; particles = []; items = []; gate = null;
-    document.getElementById('fail-screen').style.display = 'none'; document.getElementById('boss-hud').style.display = 'none'; document.getElementById('letter-screen').style.display = 'none';
-    updateHearts(); let groundY = canvas.height/ZOOM - 150;
-    platforms.forEach(p => p.drawY = p.y + groundY); enemies.forEach(e => e.drawY = e.y + groundY); boss.startY = groundY - 200; boss.y = boss.startY;
-    requestAnimationFrame(update);
-}
-function updateHearts() { const div = document.getElementById('hud-hearts'); div.innerHTML = ''; for(let i=0; i<player.hp; i++) div.innerHTML += '<div class="mc-heart"></div>'; }
-function bind(id, k) { const el = document.getElementById(id); el.addEventListener('touchstart', (e) => { e.preventDefault(); keys[k] = true; }); el.addEventListener('touchend', (e) => { e.preventDefault(); keys[k] = false; }); }
-bind('leftBtn', 'left'); bind('rightBtn', 'right'); bind('jumpBtn', 'jump');
-window.addEventListener('click', () => { if(inDialogue) nextDialog(); });
-function nextDialog() { diagIdx++; if(diagIdx < script.length) { document.getElementById('d-spk').innerText = script[diagIdx].s; document.getElementById('d-txt').innerText = script[diagIdx].t; } else { inDialogue = false; boss.active = true; document.getElementById('dialogue-box').style.display = 'none'; document.getElementById('boss-hud').style.display = 'block'; document.getElementById('controls').style.display = 'flex'; } }
-function update() {
-    if(!gameRunning) return; requestAnimationFrame(update); if(inDialogue) return; frame++;
-    if(keys.left) { player.vx = -player.speed; player.facingRight = false; } else if(keys.right) { player.vx = player.speed; player.facingRight = true; } else player.vx *= 0.8;
-    player.vy += 0.8; player.x += player.vx; player.y += player.vy; player.onGround = false;
-    platforms.forEach(p => { if(p.bossOnly && !boss.active) return; if(player.vy > 0 && player.x + 20 > p.x && player.x < p.x + p.w && player.y + player.h > p.drawY && player.y + player.h < p.drawY + 30) { player.y = p.drawY - player.h; player.vy = 0; player.onGround = true; } });
-    if(keys.jump && player.onGround) player.vy = player.jumpPower;
-    cameraX += (player.x - (canvas.width/ZOOM)/3 - cameraX) * 0.1;
-    if(player.x > 2800 && !boss.active && diagIdx === 0) { inDialogue = true; document.getElementById('dialogue-box').style.display = 'block'; document.getElementById('d-spk').innerText = script[0].s; document.getElementById('d-txt').innerText = script[0].t; }
-    if(boss.active) { boss.x += 3 * boss.dir; if(boss.x < 2600 || boss.x > 3700) boss.dir *= -1; if(frame % 100 === 0) { let angle = Math.atan2(player.y - boss.y, player.x - boss.x); projectiles.push({x: boss.x+45, y: boss.y+50, vx: Math.cos(angle)*5, vy: Math.sin(angle)*5}); } if(boss.invulnTimer > 0) boss.invulnTimer--; if(checkOverlap(player, {x:boss.x, y:boss.y, w:boss.w, h:boss.h}) && player.vy > 0 && boss.invulnTimer === 0) { boss.hp--; boss.invulnTimer = 60; player.vy = -15; document.getElementById('hp-fill').style.width = (boss.hp/5*100) + "%"; if(boss.hp <= 0) bossDefeated(); } }
-    enemies.forEach(e => { if(!e.dead) { e.x += e.vx; if(e.x > e.max || e.x < e.min) e.vx *= -1; if(checkOverlap(player, {x:e.x, y:e.drawY, w:e.w, h:e.h})) hitPlayer(); } });
-    items.forEach((it, idx) => { if(checkOverlap(player, {x:it.x, y:it.y, w:30, h:30})) { items.splice(idx, 1); if(items.length === 0) document.getElementById('letter-screen').style.display = 'block'; } });
-    projectiles.forEach(p => { p.x += p.vx; p.y += p.vy; if(checkOverlap(player, {x:p.x, y:p.y, w:10, h:10})) hitPlayer(); });
-    if(player.y > platforms[0].drawY + 400) hitPlayer(true);
-    draw();
-}
-function bossDefeated() { boss.active = false; document.getElementById('boss-hud').style.display = 'none'; items.push({x: boss.x, y: boss.startY + 100, type: 'key'}); }
-function hitPlayer(instant) { if(player.invulnerable > 0 && !instant) return; player.hp--; if(instant) player.hp = 0; updateHearts(); if(player.hp <= 0) { gameRunning = false; document.getElementById('fail-screen').style.display = 'block'; } else player.invulnerable = 60; }
-function checkOverlap(r1, r2) { return (r1.x < r2.x + (r2.w||30) && r1.x + r1.w > r2.x && r1.y < r2.y + (r2.h||30) && r1.y + r1.h > r2.y); }
-function draw() {
-    ctx.clearRect(0,0,canvas.width, canvas.height); ctx.save(); ctx.scale(ZOOM, ZOOM); ctx.translate(-cameraX, 0);
-    platforms.forEach(p => { if(p.bossOnly && !boss.active) return; ctx.fillStyle = "#3e2723"; ctx.fillRect(p.x, p.drawY, p.w, p.h); });
-    enemies.forEach(e => { if(!e.dead) { ctx.fillStyle = "#111"; ctx.fillRect(e.x, e.drawY, e.w, e.h); } });
-    if(boss.active || inDialogue) { ctx.fillStyle = "red"; ctx.fillRect(boss.x, boss.y, boss.w, boss.h); }
-    items.forEach(it => { ctx.fillStyle = "gold"; ctx.fillRect(it.x, it.y, 30, 30); });
-    projectiles.forEach(p => { ctx.fillStyle = "#0ff"; ctx.beginPath(); ctx.arc(p.x, p.y, 8, 0, Math.PI*2); ctx.fill(); });
-    // Player
-    ctx.fillStyle = player.invulnerable % 10 < 5 ? "#ff1493" : "transparent";
-    ctx.fillRect(player.x, player.y, player.w, player.h);
-    ctx.restore();
-}
-</script>
-</body>
-</html>
+    <div id="letter-screen" class="screen-box" style="display:none;">
+        <h1>AMORE MIO</h1>
+        <div class="story-text">
+            “Sono nelle segrete, ma ora hai le chiavi.<br>
+            Il Cuore di Cristallo è tuo.<br><br>
+            Un ultimo passo ci separa.
