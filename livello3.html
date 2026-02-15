@@ -17,18 +17,14 @@
     /* UI LAYER */
     #ui { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
 
-    /* --- MENU STILE NEON CON FIX MOBILE --- */
+    /* MENU STYLE */
     .screen-box {
         position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
         width: 85%; max-width: 550px;
-        
-        /* QUESTE RIGHE FANNO SCORRERE IL TESTO SE LO SCHERMO E' PICCOLO */
-        max-height: 80vh; 
-        overflow-y: auto; 
-        
+        max-height: 85vh; overflow-y: auto;
         background: linear-gradient(135deg, #1a0b2e 0%, #000000 100%);
         border: 3px solid #b388ff;
-        padding: 30px; text-align: center; color: #fff;
+        padding: 25px; text-align: center; color: #fff;
         box-shadow: 0 0 40px rgba(138, 43, 226, 0.6);
         pointer-events: auto; border-radius: 15px; z-index: 2000;
     }
@@ -51,26 +47,28 @@
         border: 2px solid #00e5ff; border-radius: 30px;
         cursor: pointer; text-transform: uppercase; 
         box-shadow: 0 0 15px rgba(0, 229, 255, 0.2);
-        transition: all 0.2s; pointer-events: auto; /* IMPORTANTE PER IL CLICK */
-        margin-bottom: 10px;
+        transition: all 0.2s; pointer-events: auto; margin-top: 10px;
     }
-    button:hover { background: rgba(0, 229, 255, 0.1); transform: scale(1.05); }
-    button:active { transform: scale(0.95); background: #00e5ff; color: #000; }
+    button:active { background: #00e5ff; color: #000; }
 
-    /* HUD CUORI */
+    /* HUD */
     #hud-hearts { position: absolute; top: 20px; left: 20px; display: flex; gap: 5px; filter: drop-shadow(2px 2px 0 #000); z-index: 100; }
     .mc-heart {
         width: 24px; height: 24px; image-rendering: pixelated;
         background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 9 9"><path fill="%23000" d="M2 2h2v1h-2zM5 2h2v1h-2zM1 3h1v1h-1zM7 3h1v1h-1zM0 4h1v1h-1zM8 4h1v1h-1zM1 5h1v1h-1zM7 5h1v1h-1zM2 6h1v1h-1zM6 6h1v1h-1zM3 7h1v1h-1zM5 7h1v1h-1zM4 8h1v1h-1z"/><path fill="%23c00" d="M2 3h2v1h-2zM5 3h2v1h-2zM1 4h1v1h-1zM2 4h1v1h-1zM3 4h1v1h-1zM4 4h1v1h-1zM5 4h1v1h-1zM6 4h1v1h-1zM7 4h1v1h-1zM2 5h1v1h-1zM3 5h1v1h-1zM4 5h1v1h-1zM5 5h1v1h-1zM6 5h1v1h-1zM3 6h1v1h-1zM4 6h1v1h-1zM5 6h1v1h-1zM4 7h1v1h-1z"/><path fill="%23fff" d="M2 3h1v1h-1z"/></svg>') no-repeat center/contain;
     }
 
-    /* BOSS HUD */
     #boss-hud { display: none; position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); width: 60%; z-index: 90; }
     .boss-name { text-align: center; color: #ff3333; font-size: 10px; margin-bottom: 8px; text-shadow: 2px 2px 0 #000; letter-spacing: 2px; }
     .hp-bar-bg { width: 100%; height: 15px; background: #220; border: 2px solid #fff; border-radius: 4px; }
     .hp-fill { width: 100%; height: 100%; background: linear-gradient(90deg, #ff0000, #ff5555); transition: width 0.2s; box-shadow: 0 0 10px red; }
 
-    /* DIALOGHI */
+    /* DIALOGHI - FIX OVERLAY CLICCABILE */
+    #dialogue-overlay {
+        display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.6); z-index: 9998; pointer-events: auto;
+    }
+    
     #dialogue-box {
         display: none; position: absolute; bottom: 120px; left: 50%; transform: translateX(-50%);
         width: 90%; max-width: 600px; 
@@ -80,11 +78,10 @@
         border-radius: 10px; 
         z-index: 9999; 
         box-shadow: 0 0 30px rgba(0,0,0,0.9);
-        cursor: pointer; pointer-events: auto;
+        pointer-events: none; /* Il click lo prende l'overlay */
     }
     .speaker { color: #00e5ff; font-size: 12px; margin-bottom: 8px; text-transform: uppercase; text-shadow: 0 0 5px cyan; }
 
-    /* FADE */
     #fade-overlay {
         display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
         background: black; z-index: 5000; align-items: center; justify-content: center; flex-direction: column;
@@ -92,7 +89,6 @@
     }
     .fade-text { color: white; font-family: 'Press Start 2P', cursive; font-size: 1.5rem; opacity: 0; transition: opacity 2s 1s; text-shadow: 0 0 20px white; }
 
-    /* CONTROLLI TOUCH */
     #controls { 
         position: absolute; bottom: 20px; left: 0; width: 100%; 
         display: none; justify-content: space-between; padding: 0 20px; box-sizing: border-box;
@@ -115,12 +111,9 @@
         <h1>ULTIMO LIVELLO</h1>
         <div class="story-text">
             Benvenuta all’ultimo livello.<br><br>
-            Questo è il percorso finale.<br><br>
-            Preparati a superare ostacoli e nemici…<br>
-            e a sconfiggere il boss.<br><br>
-            Solo così potrai conquistare il Cuore di Cristallo e la Chiave delle Segrete.
+            Sconfiggi il boss per salvare Rocco.
         </div>
-        <button onclick="startGame()">INIZIA LA SFIDA</button>
+        <button onclick="startGame()">INIZIA</button>
     </div>
 
     <div id="hud-hearts" style="display:none;"></div>
@@ -130,6 +123,8 @@
         <div class="hp-bar-bg"><div id="hp-fill" class="hp-fill"></div></div>
     </div>
 
+    <div id="dialogue-overlay" onclick="nextDialog()"></div>
+    
     <div id="dialogue-box">
         <div id="d-spk" class="speaker"></div>
         <div id="d-txt"></div>
@@ -181,6 +176,7 @@ resize();
 const ZOOM = 0.7;
 let gameRunning = false;
 let inDialogue = false;
+let dialogueTriggered = false; // PROTEZIONE DIALOGO
 let cameraX = 0;
 let frame = 0;
 
@@ -195,12 +191,10 @@ let items = [];
 let gate = null; 
 
 const script = [
-    {s:"RE MALVAGIO", t:"Sei arrivata fino a qui… troppo tardi."},
-    {s:"RE MALVAGIO", t:"Il tuo ragazzo marcirà nelle segrete per l’eternità!"},
-    {s:"RE MALVAGIO", t:"Con il Cuore conquisterò tutto l’amore del mondo!"},
+    {s:"RE MALVAGIO", t:"Sei arrivata... troppo tardi!"},
     {s:"TU", t:"Non oggi. Non con me davanti."},
-    {s:"TU", t:"Per lui… e per tutti coloro che amano, spezzerò le tue catene!"},
-    {s:"TU", t:"Il tuo regno di tenebra finisce qui!"}
+    {s:"RE MALVAGIO", t:"Il potere del Cristallo sarà mio!"},
+    {s:"TU", t:"Il tuo regno finisce qui!"}
 ];
 let diagIdx = 0;
 
@@ -240,7 +234,7 @@ function resetGame() {
     player.hp = 3; player.x = 100; player.y = -300; player.vx = 0; player.vy = 0;
     
     boss.active = false; boss.hp = 5; boss.x = 3400;
-    inDialogue = false; diagIdx = 0;
+    inDialogue = false; dialogueTriggered = false; diagIdx = 0;
     projectiles = []; particles = []; items = []; gate = null;
 
     document.getElementById('fail-screen').style.display = 'none';
@@ -248,6 +242,7 @@ function resetGame() {
     document.getElementById('hp-fill').style.width = '100%';
     document.getElementById('letter-screen').style.display = 'none';
     document.getElementById('dialogue-box').style.display = 'none';
+    document.getElementById('dialogue-overlay').style.display = 'none';
     
     updateHearts();
 
@@ -256,7 +251,7 @@ function resetGame() {
     enemies.forEach(e => e.drawY = e.y + groundY);
     torches.forEach(t => t.drawY = t.y + groundY);
     
-    boss.startY = groundY + 150 - 350; 
+    boss.startY = groundY - 200; 
     boss.y = boss.startY;
     
     player.y = groundY - 300;
@@ -278,10 +273,7 @@ function bind(id, k) {
 }
 bind('leftBtn', 'left'); bind('rightBtn', 'right'); bind('jumpBtn', 'jump');
 
-// DIALOGO
-window.addEventListener('click', (e) => { if(inDialogue) nextDialog(); });
-window.addEventListener('touchstart', (e) => { if(inDialogue) { e.preventDefault(); nextDialog(); } }, {passive: false});
-
+// GESTIONE DIALOGHI SEMPLIFICATA E ROBUSTA
 function nextDialog() {
     diagIdx++;
     if(diagIdx < script.length) {
@@ -290,6 +282,7 @@ function nextDialog() {
     } else {
         inDialogue = false;
         boss.active = true;
+        document.getElementById('dialogue-overlay').style.display = 'none';
         document.getElementById('dialogue-box').style.display = 'none';
         document.getElementById('boss-hud').style.display = 'block';
         document.getElementById('controls').style.display = 'flex';
@@ -325,11 +318,16 @@ function update() {
     cameraX += (targetX - cameraX) * 0.1;
 
     // Trigger Boss
-    if(player.x > 2800 && !boss.active && diagIdx === 0 && !items.length && !gate) {
+    if(player.x > 2800 && !boss.active && !dialogueTriggered && !items.length && !gate) {
         inDialogue = true; 
+        dialogueTriggered = true; // FIX: EVITA CHE IL DIALOGO RIPARTA ALL'INFINITO
         player.vx = 0;
         document.getElementById('controls').style.display = 'none'; 
+        
+        // Attiva Overlay Cliccabile
+        document.getElementById('dialogue-overlay').style.display = 'block';
         document.getElementById('dialogue-box').style.display = 'block';
+        
         document.getElementById('d-spk').innerText = script[0].s;
         document.getElementById('d-txt').innerText = script[0].t;
     }
@@ -424,6 +422,11 @@ function enterNextLevel() {
     setTimeout(() => overlay.style.opacity = 1, 10);
     setTimeout(() => document.getElementById('ft1').style.opacity = 1, 1000);
     setTimeout(() => document.getElementById('ft2').style.opacity = 1, 2000);
+    
+    // --- IL PASSAGGIO AL LIVELLO 4 ---
+    setTimeout(() => {
+        window.parent.postMessage('NEXT_LEVEL_4', '*');
+    }, 2000);
 }
 
 function hitPlayer(instant) {
@@ -547,3 +550,4 @@ function draw() {
 </script>
 </body>
 </html>
+
