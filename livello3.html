@@ -17,7 +17,7 @@
     /* UI LAYER */
     #ui { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
 
-    /* MENU STYLE */
+    /* MENU STYLE - FIXATO PER NON USCIRE DALLO SCHERMO */
     .screen-container {
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
         display: flex; justify-content: center; align-items: center;
@@ -26,6 +26,8 @@
 
     .screen-box {
         width: 85%; max-width: 500px;
+        /* QUESTE RIGHE RISOLVONO IL PROBLEMA DEL TESTO TAGLIATO */
+        max-height: 80vh; overflow-y: auto; 
         background: linear-gradient(135deg, #1a0b2e 0%, #000000 100%);
         border: 3px solid #b388ff; border-radius: 15px;
         padding: 20px; text-align: center; color: #fff;
@@ -34,7 +36,7 @@
 
     h1 { 
         color: #d1c4e9; text-shadow: 0 0 10px #b388ff;
-        font-size: 1.2rem; margin-bottom: 20px; 
+        font-size: 1.1rem; margin-bottom: 20px; 
         text-transform: uppercase; line-height: 1.5;
     }
     
@@ -56,13 +58,16 @@
 
     /* HUD */
     #hud-hearts { position: absolute; top: 15px; left: 15px; display: flex; gap: 5px; z-index: 100; }
-    .mc-heart { width: 20px; height: 20px; background: red; box-shadow: 2px 2px 0 #000; }
+    .mc-heart {
+        width: 24px; height: 24px; image-rendering: pixelated;
+        background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 9 9"><path fill="%23000" d="M2 2h2v1h-2zM5 2h2v1h-2zM1 3h1v1h-1zM7 3h1v1h-1zM0 4h1v1h-1zM8 4h1v1h-1zM1 5h1v1h-1zM7 5h1v1h-1zM2 6h1v1h-1zM6 6h1v1h-1zM3 7h1v1h-1zM5 7h1v1h-1zM4 8h1v1h-1z"/><path fill="%23c00" d="M2 3h2v1h-2zM5 3h2v1h-2zM1 4h1v1h-1zM2 4h1v1h-1zM3 4h1v1h-1zM4 4h1v1h-1zM5 4h1v1h-1zM6 4h1v1h-1zM7 4h1v1h-1zM2 5h1v1h-1zM3 5h1v1h-1zM4 5h1v1h-1zM5 5h1v1h-1zM6 5h1v1h-1zM3 6h1v1h-1zM4 6h1v1h-1zM5 6h1v1h-1zM4 7h1v1h-1z"/><path fill="%23fff" d="M2 3h1v1h-1z"/></svg>') no-repeat center/contain;
+    }
 
     /* BOSS HUD */
     #boss-hud { display: none; position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); width: 70%; z-index: 90; }
-    .boss-name { text-align: center; color: #ff3333; font-size: 8px; margin-bottom: 5px; }
-    .hp-bar-bg { width: 100%; height: 10px; background: #220; border: 2px solid #fff; }
-    .hp-fill { width: 100%; height: 100%; background: red; transition: width 0.2s; }
+    .boss-name { text-align: center; color: #ff3333; font-size: 8px; margin-bottom: 5px; text-shadow: 2px 2px 0 #000; letter-spacing: 2px; }
+    .hp-bar-bg { width: 100%; height: 10px; background: #220; border: 2px solid #fff; border-radius: 4px; }
+    .hp-fill { width: 100%; height: 100%; background: linear-gradient(90deg, #ff0000, #ff5555); transition: width 0.2s; box-shadow: 0 0 10px red; }
 
     /* CONTROLLI TOUCH */
     #controls { 
@@ -71,10 +76,10 @@
         pointer-events: none; z-index: 150;
     }
     .btn { 
-        width: 65px; height: 65px; background: rgba(255,255,255,0.15); 
+        width: 75px; height: 75px; background: rgba(255,255,255,0.1); 
         border-radius: 50%; pointer-events: auto; display: flex; 
-        justify-content: center; align-items: center; color: white; font-size: 24px;
-        border: 2px solid rgba(255,255,255,0.3);
+        justify-content: center; align-items: center; color: white; font-size: 30px;
+        border: 2px solid rgba(255,255,255,0.2); backdrop-filter: blur(5px);
     }
 
     #fade-overlay {
@@ -93,9 +98,11 @@
         <div class="screen-box">
             <h1>ULTIMO LIVELLO</h1>
             <div class="story-text">
-                "Il percorso finale.<br><br>
-                Sconfiggi il Boss.<br>
-                Conquista il Cuore di Cristallo."
+                Benvenuta all’ultimo livello.<br><br>
+                Questo è il percorso finale.<br><br>
+                Preparati a superare ostacoli e nemici...<br>
+                e a sconfiggere il boss.<br><br>
+                Solo così potrai conquistare il Cuore di Cristallo e la Chiave delle Segrete.
             </div>
             <button onclick="startGame()">INIZIA LA SFIDA</button>
         </div>
@@ -113,7 +120,9 @@
             <h1>AMORE MIO</h1>
             <div class="story-text">
                 "Sono nelle segrete...<br>
-                Il Cuore è tuo.<br>
+                ma ora hai le chiavi.<br><br>
+                Il Cuore di Cristallo è tuo.<br><br>
+                Un ultimo passo ci separa.<br>
                 Vieni a salvarmi!"
             </div>
             <button onclick="spawnGate()">CORRI ALL'USCITA</button>
@@ -144,7 +153,7 @@ let frame = 0;
 const keys = { left: false, right: false, jump: false };
 
 // Player & Boss
-const player = { x: 100, y: 0, w: 32, h: 48, vx: 0, vy: 0, speed: 6, jumpPower: -16, onGround: false, hp: 3, invulnerable: 0 };
+const player = { x: 100, y: 0, w: 32, h: 48, vx: 0, vy: 0, speed: 6, jumpPower: -16, onGround: false, hp: 3, invulnerable: 0, facingRight: true, animFrame: 0 };
 const boss = { x: 3400, y: 0, w: 90, h: 110, hp: 5, active: false, dir: 1, startY: 0, invulnTimer: 0 };
 
 let projectiles = [];
@@ -193,9 +202,9 @@ function update() {
     frame++;
 
     // Movimento Player
-    if(keys.left) player.vx = -player.speed;
-    else if(keys.right) player.vx = player.speed;
-    else player.vx *= 0.8;
+    if(keys.left) { player.vx = -player.speed; player.facingRight = false; player.animFrame++; }
+    else if(keys.right) { player.vx = player.speed; player.facingRight = true; player.animFrame++; }
+    else { player.vx *= 0.8; player.animFrame = 0; }
     
     player.vy += 0.8; 
     player.x += player.vx; 
@@ -289,7 +298,7 @@ function enterNextLevel() {
     overlay.style.display = 'flex';
     setTimeout(() => overlay.style.opacity = 1, 10);
     
-    // --- IL PASSAGGIO FONDAMENTALE AL LIVELLO 4 ---
+    // --- IL PASSAGGIO AL LIVELLO 4 ---
     setTimeout(() => {
         window.parent.postMessage('NEXT_LEVEL_4', '*');
     }, 2000);
@@ -306,18 +315,41 @@ function checkOverlap(r1, r2) {
     return (r1.x < r2.x + r2.w && r1.x + r1.w > r2.x && r1.y < r2.y + r2.h && r1.y + r1.h > r2.y);
 }
 
+function drawPlayer(x, y, w, h, facingRight) {
+    // CORPO
+    ctx.fillStyle = '#3E2723'; 
+    if(facingRight) { let w = Math.sin(player.animFrame * 0.5) * 3; ctx.fillRect(x - 6 + w, y + 5, 12, 35); } 
+    else { let w = Math.sin(player.animFrame * 0.5) * 3; ctx.fillRect(x + w - 6 + w, y + 5, 12, 35); }
+    // VESTITI
+    ctx.fillStyle = '#ff1493'; ctx.fillRect(x + 4, y + 15, w - 8, 20);
+    ctx.fillStyle = '#ffccaa'; ctx.fillRect(x + 2, y, w - 4, 15);
+    ctx.fillStyle = '#3E2723'; ctx.fillRect(x + 2, y, w - 4, 6); 
+    // OCCHI
+    ctx.fillStyle = 'black';
+    if(facingRight) { ctx.fillRect(x + 18, y + 7, 3, 3); ctx.fillRect(x + 24, y + 7, 3, 3); } 
+    else { ctx.fillRect(x + 4, y + 7, 3, 3); ctx.fillRect(x + 10, y + 7, 3, 3); }
+    // GAMBE
+    ctx.fillStyle = '#000088'; 
+    let lo = (!keys.left && !keys.right) ? 0 : Math.sin(player.animFrame * 0.5) * 5;
+    ctx.fillRect(x + 6 + lo, y + 35, 8, 13); ctx.fillRect(x + 18 - lo, y + 35, 8, 13);
+}
+
 function draw() {
     // Sfondo e Camera
     ctx.fillStyle = "#110022"; ctx.fillRect(0,0,canvas.width,canvas.height);
     ctx.save(); ctx.scale(ZOOM, ZOOM); ctx.translate(-cameraX, 0);
 
     // Piattaforme
-    ctx.fillStyle = "#3e2723"; 
-    platforms.forEach(p => ctx.fillRect(p.x, p.drawY, p.w, p.h));
+    ctx.fillStyle = "#2E8B57"; // Colore verde foresta
+    platforms.forEach(p => {
+        ctx.fillRect(p.x, p.drawY, p.w, p.h);
+        ctx.strokeStyle = "#006400"; ctx.lineWidth=2; ctx.strokeRect(p.x, p.drawY, p.w, p.h);
+    });
 
-    // Player
-    ctx.fillStyle = player.invulnerable%10<5 ? "#ff1493" : "transparent"; 
-    ctx.fillRect(player.x, player.y, player.w, player.h);
+    // Player (GRAFICA BELLA)
+    if (player.invulnerable%10 < 5) {
+        drawPlayer(player.x, player.y, player.w, player.h, player.facingRight);
+    }
 
     // Boss
     if(boss.active) {
@@ -325,12 +357,17 @@ function draw() {
         ctx.fillRect(boss.x, boss.y, boss.w, boss.h);
         // Corona
         ctx.fillStyle = "gold"; ctx.fillRect(boss.x+10, boss.y-10, 70, 10);
+        // Occhi Boss
+        ctx.fillStyle = "yellow"; ctx.fillRect(boss.x+20, boss.y+30, 10, 10); ctx.fillRect(boss.x+60, boss.y+30, 10, 10);
     }
 
     // Oggetti
     items.forEach(it => {
-        ctx.fillStyle = it.type === 'heart' ? 'red' : 'gold';
-        ctx.fillRect(it.x, it.y, 30, 30);
+        if (it.type === 'heart') {
+             ctx.fillStyle = "red"; ctx.beginPath(); ctx.arc(it.x+15, it.y+15, 10, 0, Math.PI*2); ctx.fill();
+        } else {
+             ctx.fillStyle = "gold"; ctx.fillText("🗝️", it.x, it.y+20);
+        }
     });
 
     // Gate
