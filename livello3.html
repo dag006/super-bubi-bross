@@ -148,11 +148,10 @@ const player = { x: 100, y: 0, w: 32, h: 48, vx: 0, vy: 0, speed: 6, jumpPower: 
 const boss = { x: 3400, y: 0, w: 90, h: 110, hp: 5, active: false, dir: 1, startY: 0, invulnTimer: 0 };
 
 let projectiles = [];
-let particles = [];
 let items = [];
 let gate = null; 
 
-// Piattaforme Semplificate
+// Piattaforme
 const platforms = [
     {x: 0, y: 0, w: 800, h: 100},
     {x: 900, y: -50, w: 200, h: 40},
@@ -290,7 +289,7 @@ function enterNextLevel() {
     overlay.style.display = 'flex';
     setTimeout(() => overlay.style.opacity = 1, 10);
     
-    // --- IL PASSAGGIO AL LIVELLO 4 ---
+    // --- IL PASSAGGIO FONDAMENTALE AL LIVELLO 4 ---
     setTimeout(() => {
         window.parent.postMessage('NEXT_LEVEL_4', '*');
     }, 2000);
@@ -314,4 +313,48 @@ function draw() {
 
     // Piattaforme
     ctx.fillStyle = "#3e2723"; 
-    platforms.forEach(p => ctx.fillRect(p.x
+    platforms.forEach(p => ctx.fillRect(p.x, p.drawY, p.w, p.h));
+
+    // Player
+    ctx.fillStyle = player.invulnerable%10<5 ? "#ff1493" : "transparent"; 
+    ctx.fillRect(player.x, player.y, player.w, player.h);
+
+    // Boss
+    if(boss.active) {
+        ctx.fillStyle = boss.invulnTimer%10<5 ? "#500" : "red";
+        ctx.fillRect(boss.x, boss.y, boss.w, boss.h);
+        // Corona
+        ctx.fillStyle = "gold"; ctx.fillRect(boss.x+10, boss.y-10, 70, 10);
+    }
+
+    // Oggetti
+    items.forEach(it => {
+        ctx.fillStyle = it.type === 'heart' ? 'red' : 'gold';
+        ctx.fillRect(it.x, it.y, 30, 30);
+    });
+
+    // Gate
+    if(gate) {
+        ctx.fillStyle = "#fff"; ctx.fillRect(gate.x, gate.y, gate.w, gate.h);
+        ctx.fillStyle = "#000"; ctx.fillText("USCITA", gate.x, gate.y+60);
+    }
+    
+    // Proiettili
+    ctx.fillStyle = "cyan";
+    projectiles.forEach(p => ctx.fillRect(p.x, p.y, 10, 10));
+
+    ctx.restore();
+}
+
+// SETUP CONTROLLI
+const setup = (id, k) => {
+    const el = document.getElementById(id);
+    const down = (e) => { e.preventDefault(); keys[k] = true; };
+    const up = (e) => { e.preventDefault(); keys[k] = false; };
+    el.addEventListener('mousedown', down); el.addEventListener('mouseup', up);
+    el.addEventListener('touchstart', down); el.addEventListener('touchend', up);
+};
+setup('lBtn', 'left'); setup('rBtn', 'right'); setup('jBtn', 'jump');
+</script>
+</body>
+</html>
