@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<title>Lv3: Final Version</title>
+<title>Lv3: Final Boss</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
@@ -14,14 +14,13 @@
     }
     canvas { display: block; width: 100%; height: 100%; }
 
-    /* UI LAYER */
     #ui { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
 
-    /* MENU STYLE */
+    /* MENU STYLE - FIX MOBILE */
     .screen-box {
         position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
         width: 85%; max-width: 550px;
-        max-height: 85vh; overflow-y: auto;
+        max-height: 85vh; overflow-y: auto; /* Permette lo scorrimento se il testo è lungo */
         background: linear-gradient(135deg, #1a0b2e 0%, #000000 100%);
         border: 3px solid #b388ff;
         padding: 25px; text-align: center; color: #fff;
@@ -29,20 +28,11 @@
         pointer-events: auto; border-radius: 15px; z-index: 2000;
     }
 
-    h1 { 
-        color: #d1c4e9; text-shadow: 0 0 10px #b388ff;
-        font-size: 1.2rem; margin-bottom: 20px; 
-        text-transform: uppercase; line-height: 1.5;
-    }
-    
-    .story-text {
-        font-size: 0.7rem; line-height: 1.8; color: #e0e0e0;
-        margin-bottom: 30px; text-align: center; font-weight: normal;
-        text-shadow: 1px 1px 2px #000;
-    }
+    h1 { color: #d1c4e9; text-shadow: 0 0 10px #b388ff; font-size: 1.2rem; margin-bottom: 20px; text-transform: uppercase; line-height: 1.5; }
+    .story-text { font-size: 0.7rem; line-height: 1.8; color: #e0e0e0; margin-bottom: 25px; text-shadow: 1px 1px 2px #000; }
 
     button {
-        padding: 15px 40px; font-family: 'Press Start 2P', cursive; font-size: 10px;
+        padding: 15px 30px; font-family: 'Press Start 2P', cursive; font-size: 10px;
         background: transparent; color: #00e5ff; 
         border: 2px solid #00e5ff; border-radius: 30px;
         cursor: pointer; text-transform: uppercase; 
@@ -52,7 +42,7 @@
     button:active { background: #00e5ff; color: #000; }
 
     /* HUD */
-    #hud-hearts { position: absolute; top: 20px; left: 20px; display: flex; gap: 5px; filter: drop-shadow(2px 2px 0 #000); z-index: 100; }
+    #hud-hearts { position: absolute; top: 20px; left: 20px; display: flex; gap: 5px; z-index: 100; }
     .mc-heart {
         width: 24px; height: 24px; image-rendering: pixelated;
         background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 9 9"><path fill="%23000" d="M2 2h2v1h-2zM5 2h2v1h-2zM1 3h1v1h-1zM7 3h1v1h-1zM0 4h1v1h-1zM8 4h1v1h-1zM1 5h1v1h-1zM7 5h1v1h-1zM2 6h1v1h-1zM6 6h1v1h-1zM3 7h1v1h-1zM5 7h1v1h-1zM4 8h1v1h-1z"/><path fill="%23c00" d="M2 3h2v1h-2zM5 3h2v1h-2zM1 4h1v1h-1zM2 4h1v1h-1zM3 4h1v1h-1zM4 4h1v1h-1zM5 4h1v1h-1zM6 4h1v1h-1zM7 4h1v1h-1zM2 5h1v1h-1zM3 5h1v1h-1zM4 5h1v1h-1zM5 5h1v1h-1zM6 5h1v1h-1zM3 6h1v1h-1zM4 6h1v1h-1zM5 6h1v1h-1zM4 7h1v1h-1z"/><path fill="%23fff" d="M2 3h1v1h-1z"/></svg>') no-repeat center/contain;
@@ -63,21 +53,17 @@
     .hp-bar-bg { width: 100%; height: 15px; background: #220; border: 2px solid #fff; border-radius: 4px; }
     .hp-fill { width: 100%; height: 100%; background: linear-gradient(90deg, #ff0000, #ff5555); transition: width 0.2s; box-shadow: 0 0 10px red; }
 
-    /* DIALOGHI - FIX OVERLAY CLICCABILE */
+    /* DIALOGHI - OVERLAY CLICCABILE */
     #dialogue-overlay {
         display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
         background: rgba(0,0,0,0.6); z-index: 9998; pointer-events: auto;
     }
-    
     #dialogue-box {
         display: none; position: absolute; bottom: 120px; left: 50%; transform: translateX(-50%);
         width: 90%; max-width: 600px; 
-        background: rgba(20, 10, 30, 0.98); 
-        border: 2px solid #b388ff; 
+        background: rgba(20, 10, 30, 0.98); border: 2px solid #b388ff; 
         padding: 20px; color: white; font-size: 10px; line-height: 1.8; text-align: center;
-        border-radius: 10px; 
-        z-index: 9999; 
-        box-shadow: 0 0 30px rgba(0,0,0,0.9);
+        border-radius: 10px; z-index: 9999; 
         pointer-events: none; /* Il click lo prende l'overlay */
     }
     .speaker { color: #00e5ff; font-size: 12px; margin-bottom: 8px; text-transform: uppercase; text-shadow: 0 0 5px cyan; }
@@ -89,9 +75,11 @@
     }
     .fade-text { color: white; font-family: 'Press Start 2P', cursive; font-size: 1.5rem; opacity: 0; transition: opacity 2s 1s; text-shadow: 0 0 20px white; }
 
+    /* CONTROLLI - FIX VISIBILITÀ */
     #controls { 
         position: absolute; bottom: 20px; left: 0; width: 100%; 
-        display: none; justify-content: space-between; padding: 0 20px; box-sizing: border-box;
+        display: none; /* Inizialmente nascosti, poi gestiti da JS */
+        justify-content: space-between; padding: 0 20px; box-sizing: border-box;
         pointer-events: none; z-index: 80;
     }
     .btn { 
@@ -124,11 +112,10 @@
     </div>
 
     <div id="dialogue-overlay" onclick="nextDialog()"></div>
-    
     <div id="dialogue-box">
         <div id="d-spk" class="speaker"></div>
         <div id="d-txt"></div>
-        <div style="font-size:8px; color:#aaa; margin-top:10px;">(Tocca ovunque per continuare)</div>
+        <div style="font-size:8px; color:#aaa; margin-top:10px;">(Tocca per continuare)</div>
     </div>
 
     <div id="letter-screen" class="screen-box" style="display:none;">
@@ -176,7 +163,7 @@ resize();
 const ZOOM = 0.7;
 let gameRunning = false;
 let inDialogue = false;
-let dialogueTriggered = false; // PROTEZIONE DIALOGO
+let dialogueTriggered = false;
 let cameraX = 0;
 let frame = 0;
 
@@ -198,7 +185,6 @@ const script = [
 ];
 let diagIdx = 0;
 
-// PIATTAFORME
 const platforms = [
     {x: 0, y: 0, w: 600, h: 100},
     {x: 700, y: -50, w: 100, h: 40},
@@ -244,6 +230,9 @@ function resetGame() {
     document.getElementById('dialogue-box').style.display = 'none';
     document.getElementById('dialogue-overlay').style.display = 'none';
     
+    // --- FIX DEFINITIVO: ASSICURA CHE I COMANDI SIANO VISIBILI ---
+    document.getElementById('controls').style.display = 'flex'; 
+    
     updateHearts();
 
     let groundY = canvas.height/ZOOM - 150;
@@ -273,7 +262,6 @@ function bind(id, k) {
 }
 bind('leftBtn', 'left'); bind('rightBtn', 'right'); bind('jumpBtn', 'jump');
 
-// GESTIONE DIALOGHI SEMPLIFICATA E ROBUSTA
 function nextDialog() {
     diagIdx++;
     if(diagIdx < script.length) {
@@ -320,14 +308,12 @@ function update() {
     // Trigger Boss
     if(player.x > 2800 && !boss.active && !dialogueTriggered && !items.length && !gate) {
         inDialogue = true; 
-        dialogueTriggered = true; // FIX: EVITA CHE IL DIALOGO RIPARTA ALL'INFINITO
+        dialogueTriggered = true; 
         player.vx = 0;
         document.getElementById('controls').style.display = 'none'; 
         
-        // Attiva Overlay Cliccabile
         document.getElementById('dialogue-overlay').style.display = 'block';
         document.getElementById('dialogue-box').style.display = 'block';
-        
         document.getElementById('d-spk').innerText = script[0].s;
         document.getElementById('d-txt').innerText = script[0].t;
     }
@@ -335,7 +321,6 @@ function update() {
     if(boss.active) {
         boss.x += 3 * boss.dir;
         boss.y = boss.startY + Math.sin(frame * 0.05) * 40; 
-        
         if(boss.x < 2600) { boss.x = 2600; boss.dir = 1; }
         if(boss.x > 3700) { boss.x = 3700; boss.dir = -1; }
 
@@ -356,7 +341,7 @@ function update() {
         }
     }
 
-    enemies.forEach((e, idx) => {
+    enemies.forEach((e) => {
         if(!e.dead) {
             e.x += e.vx; if(e.x > e.max || e.x < e.min) e.vx *= -1;
             if(checkOverlap(player, {x:e.x, y:e.drawY, w:e.w, h:e.h})) {
@@ -387,7 +372,6 @@ function update() {
     }
 
     if(player.y > platforms[0].drawY + 400) hitPlayer(true);
-    
     if(player.invulnerable > 0) player.invulnerable--;
 
     draw();
@@ -407,14 +391,6 @@ function showLetter() {
     document.getElementById('letter-screen').style.display = 'block';
 }
 
-function spawnGate() {
-    document.getElementById('letter-screen').style.display = 'none';
-    document.getElementById('controls').style.display = 'flex';
-    let arena = platforms[7];
-    gate = { x: arena.x + arena.w - 150, y: arena.drawY - 120, w: 100, h: 120 };
-    player.x = arena.x + arena.w - 500;
-}
-
 function enterNextLevel() {
     gameRunning = false;
     let overlay = document.getElementById('fade-overlay');
@@ -422,8 +398,6 @@ function enterNextLevel() {
     setTimeout(() => overlay.style.opacity = 1, 10);
     setTimeout(() => document.getElementById('ft1').style.opacity = 1, 1000);
     setTimeout(() => document.getElementById('ft2').style.opacity = 1, 2000);
-    
-    // --- IL PASSAGGIO AL LIVELLO 4 ---
     setTimeout(() => {
         window.parent.postMessage('NEXT_LEVEL_4', '*');
     }, 2000);
@@ -437,7 +411,8 @@ function hitPlayer(instant) {
     if(player.hp <= 0) {
         gameRunning = false;
         document.getElementById('fail-screen').style.display = 'block';
-        document.getElementById('controls').style.display = 'none';
+        // HO RIMOSSO LA RIGA CHE NASCONDEVA I CONTROLLI QUI!
+        // Così restano visibili sotto il Game Over e non scompaiono.
     }
 }
 
@@ -453,9 +428,6 @@ function draw() {
     ctx.save();
     ctx.scale(ZOOM, ZOOM);
     ctx.translate(-cameraX, 0);
-
-    ctx.fillStyle = "rgba(0,0,0,0.3)";
-    [200, 1400, 1900, 2700, 3500].forEach(x => ctx.fillRect(x, 0, 80, canvas.height/ZOOM));
 
     torches.forEach(t => {
         let f = Math.random()*5;
@@ -513,7 +485,6 @@ function draw() {
         }
     });
 
-    // PROIETTILI VISIBILI (CIANO NEON)
     projectiles.forEach(p => { 
         ctx.shadowBlur = 15; ctx.shadowColor = "#00e5ff";
         ctx.fillStyle = "#00e5ff"; 
